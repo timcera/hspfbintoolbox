@@ -220,6 +220,18 @@ def _collect_time_series(ndata, labels, time_stamp):
 
 @baker.command
 def time_series(hbnfilename, interval, *labels, **time_stamp):
+    '''
+    Prints out data to the screen from a HSPF binary output file.
+    :param hbnfilename: The HSPF binary output file
+    :param interval: One of 'yearly', 'monthly', 'daily', or 'BIVL'.
+        The 'BIVL' option is a sub-daily interval defined in the UCI file.
+        Typically 'BIVL' is used for hourly output, but can be set to any
+        value that evenly divides into a day.
+    :param labels: The remaining arguments uniquely identify a time-series
+        in the binary file.  The format is
+        'OPERATIONTYPE,ID,SECTION,VARIABLE'.
+        For example: PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS
+    '''
 
     try:
         time_stamp = time_stamp['time_stamp']
