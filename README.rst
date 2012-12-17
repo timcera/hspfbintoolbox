@@ -1,23 +1,47 @@
-This file requires editing
-==========================
+HSPFBINTOOLBOX
+==============
+The hspfbintoolbox is a Python script to read Hydrological Simulation Program
+Fortran (HSPF) binary files and print to screen.  The time series can then be redirected to
+file, or piped to other command line programs like `tstoolbox`.
 
-Note to the author: Please add something informative to this README *before*
-releasing your software, as `a little documentation goes a long way`_.  Both
-README.rst (this file) and NEWS.txt (release notes) will be included in your
-package metadata which gets displayed in the PyPI page for your project.
+Requirements
+============
 
-You can take a look at the README.txt of other projects, such as repoze.bfg
-(http://bfg.repoze.org/trac/browser/trunk/README.txt) for some ideas.
+* pandas - on Windows this is part of the Python(x,y) distribution
+  (http://code.google.com/p/pythonxy/)
 
-.. _`a little documentation goes a long way`: http://www.martinaspeli.net/articles/a-little-documentation-goes-a-long-way
+* baker - command line parser
 
-Credits
--------
+* tstoolbox - utilities to process time-series
 
-- `Distribute`_
-- `Buildout`_
-- `modern-package-template`_
+* construct - a binary parser
 
-.. _Buildout: http://www.buildout.org/
-.. _Distribute: http://pypi.python.org/pypi/distribute
-.. _`modern-package-template`: http://pypi.python.org/pypi/modern-package-template
+Installation
+============
+Should be as easy as running ``easy_install hspfbintoolbox`` or ``pip install
+hspfbintoolbox``` at any command line.  Not sure on Windows whether this will
+bring in pandas but as mentioned above, if you start with Python(x,y) then
+you won't have a problem.
+
+Running
+=======
+Just run 'hspfbintoolbox.py' to get a list of subcommands::
+
+    Usage: /sjr/beodata/local/python_linux/bin/hspfbintoolbox COMMAND <options>
+    
+    Available commands:
+     catalog
+     dump
+     time_series  Prints out data to the screen from a HSPF binary output file.
+    
+    Use '/sjr/beodata/local/python_linux/bin/hspfbintoolbox <command> --help' for individual command help.
+
+Author
+======
+Tim Cera, P.E.
+
+tim at cerazone dot net
+
+Please send me a note if you find this useful, found a bug, submit a patch,
+...etc.
+
