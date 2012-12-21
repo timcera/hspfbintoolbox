@@ -119,6 +119,10 @@ def _catalog_data(ndata):
 
 @baker.command
 def catalog(hbnfilename):
+    '''
+    Prints out a catalog of data sets in the binary file.
+    :param hbnfilename: The HSPF binary output file
+    '''
     ndata = _collect(hbnfilename)
     cdata = _catalog_data(ndata)
     try:
@@ -183,7 +187,7 @@ def _process_label_lists(ndata, llist):
 
 def _collect_time_series(ndata, labels, time_stamp):
     '''
-    Prints out data to the screen from a HSPF binary output file.
+    Private to prints out data to the screen from a HSPF binary output file.
     :param hbnfilename: The HSPF binary output file
     :param interval: One of 'yearly', 'monthly', 'daily', or 'BIVL'.
         The 'BIVL' option is a sub-daily interval defined in the UCI file.
@@ -193,6 +197,10 @@ def _collect_time_series(ndata, labels, time_stamp):
         in the binary file.  The format is
         'OPERATIONTYPE,ID,SECTION,VARIABLE'.
         For example: PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS
+
+        Leaving a section blank will wildcard that specification.  To get all
+        the PWATER variables for PERLND 101 the label would read:
+        PERLND,101,PWATER,
     :param time_stamp: For the interval defines the location of the time
         stamp. If set to 'begin', the time stamp is at the begining of the
         interval.  If set to any other string, the reported time stamp will
@@ -231,6 +239,10 @@ def time_series(hbnfilename, interval, *labels, **time_stamp):
         in the binary file.  The format is
         'OPERATIONTYPE,ID,SECTION,VARIABLE'.
         For example: PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS
+
+        Leaving a section blank will wildcard that specification.  To get all
+        the PWATER variables for PERLND 101 the label would read:
+        PERLND,101,PWATER,
     '''
 
     try:
@@ -254,64 +266,12 @@ def time_series(hbnfilename, interval, *labels, **time_stamp):
         time_stamp=time_stamp))
 
 
-def _oldcollect_time_series(ndata, labels, time_stamp='begin'):
-    for label in labels:
-        try:
-            ot,lu,sec,vn,lev = label.split(',')
-        except AttributeError:
-            ot,lu,sec,vn,lev = label
-        print ot,int(lu),sec,vn,int(lev)
-        nrows = ndata.ix[ot,int(lu),sec,vn,int(lev)]
-        # Had to leave off the to_period option - couldn't dump different
-        # interval series and didn't benefit printing at all since the to_csv
-        # command does not pretty print the period.
-        tmpres = pd.DataFrame(nrows['value'],
-                 columns=['{0}_{1}_{2}_{3}'.format(ot, lu, vn,
-                     lev)])#.to_period(freq=code2freqmap[int(lev)])
-
-        if time_stamp == 'begin':
-            tmpres = tmpres.tshift(-1)
-
-        try:
-            result = result.join(tmpres)
-        except NameError:
-            result = tmpres
-    return result
-
-
-def oldtime_series(hbnfilename, interval, *labels, **time_stamp):
-    '''
-    Prints out data to the screen from a HSPF binary output file.
-    :param hbnfilename: The HSPF binary output file
-    :param interval: One of 'yearly', 'monthly', 'daily', or 'BIVL'.
-        The 'BIVL' option is a sub-daily interval defined in the UCI file.
-        Typically 'BIVL' is used for hourly output, but can be set to any
-        value that evenly divides into a day.
-    :param labels: The remaining arguments uniquely identify a time-series
-        in the binary file.  The format is
-        'OPERATIONTYPE,ID,SECTION,VARIABLE'.
-        For example: PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS
-    :param time_stamp: For the interval defines the location of the time
-        stamp. If set to 'begin', the time stamp is at the begining of the
-        interval.  If set to any other string, the reported time stamp will
-        represent the end of the interval.  Default is 'begin'.  Place after
-        ALL labels.
-    '''
-    try:
-        time_stamp = time_stamp['time_stamp']
-    except KeyError:
-        time_stamp = 'begin'
-    if time_stamp not in ['begin', 'end']:
-        raise ValueError('The "time_stamp" optional keyword must be either '
-            '"begin" or "end".  You gave {0}'.format(time_stamp))
-    ndata = _collect(hbnfilename)
-    lablist = ['{0},{1}'.format(i, interval2codemap[interval.lower()]) for i in labels]
-    tsutils.printiso(_collect_time_series(ndata, lablist,
-        time_stamp=time_stamp))
-
-
 @baker.command
 def dump(hbnfilename):
+    '''
+    Prints out ALL data to the screen from a HSPF binary output file.
+    :param hbnfilename: The HSPF binary output file
+    '''
     ndata = _collect(hbnfilename)
     cdata = zip(ndata.index.get_level_values('opertype'),
                 ndata.index.get_level_values('land_use'),
