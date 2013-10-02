@@ -7,7 +7,7 @@ import numpy as np
 import baker
 import pandas as pd
 
-import tsutils
+import tstoolbox.tsutils as tsutils
 
 
 code2intervalmap = {5: 'yearly',

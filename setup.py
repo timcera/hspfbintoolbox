@@ -3,10 +3,9 @@ import sys, os
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-NEWS = open(os.path.join(here, 'NEWS.txt')).read()
+CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
-
-version = '0.1.1'
+version=open("VERSION").readline().strip()
 
 install_requires = [
     # List your project dependencies here.
@@ -15,7 +14,7 @@ install_requires = [
     'baker >= 1.3',
     'python-dateutil >= 1.5, < 2.0',    # python-dateutil-2.0 is for Python 3.0
     'pandas >= 0.9.0',
-    'tstoolbox >= 0.4',
+    'tstoolbox >= 0.5',
     'construct >= 2.06',
 ]
 
@@ -23,7 +22,7 @@ install_requires = [
 setup(name='hspfbintoolbox',
     version=version,
     description="Reads Hydrological Simulation Program - FORTRAN binary files and prints to screen.",
-    long_description=README + '\n\n' + NEWS,
+    long_description=README + '\n\n' + CHANGES,
     classifiers=[
       # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
     ],

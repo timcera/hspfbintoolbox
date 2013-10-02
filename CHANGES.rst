@@ -1,6 +1,14 @@
 News
 ====
 
+0.1.2
+-----
+
+*Release date: 2013-09-17*
+
+* Moved to new layout and format...
+
+
 0.1.1
 -----
 
