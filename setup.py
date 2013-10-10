@@ -3,7 +3,6 @@ import sys, os
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
 version=open("VERSION").readline().strip()
 
@@ -15,16 +14,26 @@ install_requires = [
     'python-dateutil >= 1.5, < 2.0',    # python-dateutil-2.0 is for Python 3.0
     'pandas >= 0.9.0',
     'tstoolbox >= 0.5',
-    'construct >= 2.0.6',
+    'construct >= 2.5',
 ]
 
 
 setup(name='hspfbintoolbox',
     version=version,
     description="Reads Hydrological Simulation Program - FORTRAN binary files and prints to screen.",
-    long_description=README + '\n\n' + CHANGES,
+    long_description=README,
     classifiers=[
       # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+      'Development Status :: 5 - Production/Stable',
+      'Environment :: Console',
+      'Intended Audience :: Developers',
+      'Intended Audience :: End Users/Desktop',
+      'License :: OSI Approved :: BSD License',
+      'Operating System :: OS Independent',
+      'Programming Language :: Python :: 2',
+      'Programming Language :: Python :: 3',
+      'Topic :: Scientific/Engineering',
+      'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     keywords='hspf binary hydrologic',
     author='Tim Cera, P.E.',

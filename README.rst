@@ -1,8 +1,8 @@
 HSPFBINTOOLBOX
 ==============
 The hspfbintoolbox is a Python script to read Hydrological Simulation Program
-Fortran (HSPF) binary files and print to screen.  The time series can then be redirected to
-file, or piped to other command line programs like `tstoolbox`.
+Fortran (HSPF) binary files and print to screen.  The time series can then be
+redirected to file, or piped to other command line programs like `tstoolbox`.
 
 Requirements
 ============
@@ -20,8 +20,8 @@ Installation
 ============
 Should be as easy as running ``easy_install hspfbintoolbox`` or ``pip install
 hspfbintoolbox``` at any command line.  Not sure on Windows whether this will
-bring in pandas but as mentioned above, if you start with Python(x,y) then
-you won't have a problem.
+bring in pandas but as mentioned above, if you start with Python(x,y) then you
+won't have a problem.
 
 Running
 =======
