@@ -1,6 +1,7 @@
 # Example package with a console entry point
 
 import datetime
+import warnings
 
 from construct import *
 import numpy as np
@@ -148,6 +149,7 @@ def _process_label_lists(ndata, llist):
                  ndata.index.get_level_values('section'),
                  ndata.index.get_level_values('variable_name'),
                  ndata.index.get_level_values('levels'))
+    not_in_file = []
     for label in llist:
         try:
             ot,lu,sec,vn,lev = label.split(',')
@@ -168,10 +170,9 @@ def _process_label_lists(ndata, llist):
         if not wildcards:
             if (ot,lu,sec,vn,lev) in labdat:
                 final_lab.append((ot,lu,sec,vn,lev))
-                continue
             else:
-                raise ValueError('The specification "{0}" matched no records in the '
-                                 'binary file'.format(label))
+                not_in_file.append(label)
+            continue
 
         # Handle wildcards...
         tmpdat = labdat
@@ -179,20 +180,23 @@ def _process_label_lists(ndata, llist):
             if labpart not in testlist:
                 tmpdat = [i for i in tmpdat if i[index] == labpart]
         if len(tmpdat) == 0:
-            raise ValueError('The specification "{0}" matched no records in the '
-                             'binary file'.format(label))
+            not_in_file.append(label)
+            continue
         final_lab = final_lab + tmpdat
-    return sorted(set(final_lab))
+
+    if not final_lab:
+        raise ValueError('The specifications matched no records in the '
+                                 'binary file')
+    if not_in_file:
+        warnings.warn('The specification{0} {1} matched no records in the '
+                'binary file'.format("s"[len(not_in_file)==1:], not_in_file))
+    return final_lab
 
 
 def _collect_time_series(ndata, labels, time_stamp):
     '''
     Private to prints out data to the screen from a HSPF binary output file.
-    :param hbnfilename: The HSPF binary output file
-    :param interval: One of 'yearly', 'monthly', 'daily', or 'BIVL'.
-        The 'BIVL' option is a sub-daily interval defined in the UCI file.
-        Typically 'BIVL' is used for hourly output, but can be set to any
-        value that evenly divides into a day.
+    :param ndata: The data to print out
     :param labels: The remaining arguments uniquely identify a time-series
         in the binary file.  The format is
         'OPERATIONTYPE,ID,SECTION,VARIABLE'.
@@ -227,7 +231,7 @@ def _collect_time_series(ndata, labels, time_stamp):
 
 
 @baker.command
-def time_series(hbnfilename, interval, *labels, **time_stamp):
+def time_series(hbnfilename, interval, *labels, **kwds): #time_stamp='begin', sort=False):
     '''
     Prints out data to the screen from a HSPF binary output file.
     :param hbnfilename: The HSPF binary output file
@@ -243,12 +247,23 @@ def time_series(hbnfilename, interval, *labels, **time_stamp):
         Leaving a section blank will wildcard that specification.  To get all
         the PWATER variables for PERLND 101 the label would read:
         PERLND,101,PWATER,
+    :param time_stamp: For the interval defines the location of the time
+        stamp. If set to 'begin', the time stamp is at the begining of the
+        interval.  If set to any other string, the reported time stamp will
+        represent the end of the interval.  Default is 'begin'.  Place after
+        ALL labels.
+    :param sorted: Should the columns be sorted?
+        Default is False.  Place after ALL labels.
     '''
 
     try:
-        time_stamp = time_stamp['time_stamp']
+        time_stamp = kwds['time_stamp']
     except KeyError:
         time_stamp = 'begin'
+    try:
+        sort = kwds['sort']
+    except KeyError:
+        sort = False
     if time_stamp not in ['begin', 'end']:
         raise ValueError('The "time_stamp" optional keyword must be either '
             '"begin" or "end".  You gave {0}'.format(time_stamp))
@@ -262,6 +277,8 @@ def time_series(hbnfilename, interval, *labels, **time_stamp):
     ndata = _collect(hbnfilename)
     lablist = ['{0},{1}'.format(i, interval2codemap[interval.lower()]) for i in labels]
     lablist = _process_label_lists(ndata, lablist)
+    if sort:
+        lablist = sorted(set(lablist))
     tsutils.printiso(_collect_time_series(ndata, lablist,
         time_stamp=time_stamp))
 
