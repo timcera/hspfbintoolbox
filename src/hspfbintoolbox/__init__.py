@@ -159,8 +159,12 @@ def catalog(hbnfilename):
             levels = sorted(set(nrows.index.get_level_values('levels')))
             for lev in levels:
                 nrows = ndata.ix[ot, int(lu), sec, vn, lev]
-                maxdate = max(nrows.index)
-                mindate = min(nrows.index)
+                maxdate = nrows.index[-1]
+                tmpres = pd.DataFrame(nrows['value'],
+                              columns=['{0}_{1}_{2}_{3}'.format(
+                                  ot, lu, vn, lev)])
+                tmpres = tmpres.tshift(-1)
+                mindate = tmpres.index[0]
                 print('{0},{1},{2},{3}, {4}, {5}, {6}'.format(
                     ot, lu, sec, vn, mindate,
                     maxdate, code2intervalmap[lev]))
@@ -255,7 +259,6 @@ def _collect_time_series(ndata, labels, time_stamp):
         tmpres = pd.DataFrame(nrows['value'],
                               columns=['{0}_{1}_{2}_{3}'.format(
                                   ot, lu, vn, lev)])
-                              #.to_period(freq=code2freqmap[int(lev)])
 
         if time_stamp == 'begin':
             tmpres = tmpres.tshift(-1)
