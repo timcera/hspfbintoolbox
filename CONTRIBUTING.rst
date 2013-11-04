@@ -43,7 +43,8 @@ articles, and such.
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://bitbucket.org/timcera/hspfbintoolbox
+The best way to send feedback is to file an issue at
+https://bitbucket.org/timcera/hspfbintoolbox
 
 If you are proposing a feature:
 
@@ -55,49 +56,53 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `hspfbintoolbox` for local development.
+Ready to contribute? Here's how to set up `hspfbintoolbox` for local
+development.
 
 1. Fork the `hspfbintoolbox` repo on bitbucket.
+
 2. Clone your fork locally::
 
-    $ git clone git@bitbucket.org:your_bitbucket_login/hspfbintoolbox.git
+      $ git clone git@bitbucket.org:your_bitbucket_login/hspfbintoolbox.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv. Assuming you have
+   virtualenvwrapper installed, this is how you set up your fork for local
+   development::
 
-    $ mkvirtualenv hspfbintoolbox
-    $ cd hspfbintoolbox/
-    $ python setup.py develop
+      $ mkvirtualenv hspfbintoolbox
+      $ cd hspfbintoolbox/
+      $ python setup.py develop
 
 4. For testing you also need to install tox, coverage, and flake8::
 
-    $ pip install tox
-    $ pip install coverage
-    $ pip install flake8
+      $ pip install tox
+      $ pip install coverage
+      $ pip install flake8
 
 5. Create a branch for local development::
 
-    $ git checkout -b name-of-your-bugfix-or-feature
+      $ git checkout -b name-of-your-bugfix-or-feature
 
-Now you can make your changes locally.
+   Now you can make your changes locally.
 
-6. When you're done making changes, check that your changes pass flake8 and the
-tests, including testing other Python versions with tox::
+6. When you're done making changes, check that your changes pass flake8 and
+   the tests, including testing other Python versions with tox::
 
-    $ tox
+      $ tox
 
-Bring the htmlcov/index.html file up into a browser to make sure that the code has appropriate test coverage.
+    Bring the htmlcov/index.html file up into a browser to make sure that the
+    code has appropriate test coverage.
 
 7. Commit your changes and push your branch to bitbucket::
 
-    $ git add .
-    $ git commit -m "Your detailed description of your changes."
-    $ git push origin name-of-your-bugfix-or-feature
+      $ git add .
+      $ git commit -m "Your detailed description of your changes."
+      $ git push origin name-of-your-bugfix-or-feature
 
 8. Submit a pull request through the bitbucket website.
 
 Pull Request Guidelines
 -----------------------
-
 Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
