@@ -1,7 +1,11 @@
 # Example package with a console entry point
 
+from __future__ import print_function
+
 import datetime
 import warnings
+import os
+import sys
 
 from construct import *
 import numpy as np
@@ -26,6 +30,7 @@ code2freqmap = {5: 'Y',
                 3: 'D',
                 2: None}
 
+
 def _collect(binfilename):
     fl = open(binfilename, 'r').read()
 
@@ -48,17 +53,23 @@ def _collect(binfilename):
             rectype = ULInt32("rectype").parse(fl[tindex - 4: tindex])
             lue = ULInt32("lue").parse(fl[tindex + 8: tindex + 12])
             slen = 20
-            section = String("section", 8).parse(fl[tindex + 12: tindex + slen])
+            section = String("section", 8).parse(
+                fl[tindex + 12: tindex + slen])
             if rectype == 0:
-                reclen1 = int(ULInt8("reclen1").parse(fl[tindex - 8: tindex - 7]) / 4.0)
-                reclen2 = ULInt8("reclen2").parse(fl[tindex - 7: tindex - 6])*64 + reclen1
-                reclen3 = ULInt8("reclen3").parse(fl[tindex - 6: tindex - 5])*256*64 + reclen2
-                reclen = ULInt8("reclen").parse(fl[tindex - 5: tindex - 4])*256**2*64 + reclen3
+                reclen1 = int(ULInt8("reclen1").parse(
+                    fl[tindex - 8: tindex - 7]) / 4.0)
+                reclen2 = ULInt8("reclen2").parse(
+                    fl[tindex - 7: tindex - 6])*64 + reclen1
+                reclen3 = ULInt8("reclen3").parse(
+                    fl[tindex - 6: tindex - 5])*256*64 + reclen2
+                reclen = ULInt8("reclen").parse(
+                    fl[tindex - 5: tindex - 4])*256**2*64 + reclen3
                 # Header record
                 while 1:
                     length = ULInt32("length").parse(fl[tindex + slen:
                                                         tindex + slen + 4])
-                    variable_name = String("vars", length).parse(fl[tindex + slen + 4: tindex + slen + 4 + length])
+                    variable_name = String("vars", length).parse(
+                        fl[tindex + slen + 4: tindex + slen + 4 + length])
                     vnames.setdefault((lue, section), []).append(variable_name)
                     if slen + 8 + length >= reclen:
                         break
@@ -67,27 +78,37 @@ def _collect(binfilename):
             if rectype == 1:
                 # Data record
                 numvals = len(vnames[(lue, section)])
-                unit_flag = ULInt32("unit_flag").parse(fl[tindex + slen: tindex + slen + 4])
+                unit_flag = ULInt32("unit_flag").parse(
+                    fl[tindex + slen: tindex + slen + 4])
                 slen = slen + 4
-                level = ULInt32("level").parse(fl[tindex + slen: tindex + slen + 4])
+                level = ULInt32("level").parse(
+                    fl[tindex + slen: tindex + slen + 4])
                 slen = slen + 4
-                year = ULInt32("year").parse(fl[tindex + slen: tindex + slen + 4])
+                year = ULInt32("year").parse(
+                    fl[tindex + slen: tindex + slen + 4])
                 slen = slen + 4
-                month = ULInt32("month").parse(fl[tindex + slen: tindex + slen + 4])
+                month = ULInt32("month").parse(
+                    fl[tindex + slen: tindex + slen + 4])
                 slen = slen + 4
-                day = ULInt32("day").parse(fl[tindex + slen: tindex + slen + 4])
+                day = ULInt32("day").parse(
+                    fl[tindex + slen: tindex + slen + 4])
                 slen = slen + 4
-                hour = ULInt32("hour").parse(fl[tindex + slen: tindex + slen + 4])
+                hour = ULInt32("hour").parse(
+                    fl[tindex + slen: tindex + slen + 4])
                 slen = slen + 4
-                minute = ULInt32("minute").parse(fl[tindex + slen: tindex + slen + 4])
+                minute = ULInt32("minute").parse(
+                    fl[tindex + slen: tindex + slen + 4])
                 slen = slen + 4
 
                 if hour == 24:
-                    ndate = datetime.datetime(year, month, day) + datetime.timedelta(hours = 24) + datetime.timedelta(minutes = minute)
+                    ndate = datetime.datetime(year, month, day) + \
+                        datetime.timedelta(hours=24) + \
+                        datetime.timedelta(minutes=minute)
                 else:
                     ndate = datetime.datetime(year, month, day, hour, minute)
 
-                c = Array(numvals, LFloat32('PERVARS')).parse(fl[tindex + slen: tindex + slen + numvals*4])
+                c = Array(numvals, LFloat32('PERVARS')).parse(
+                    fl[tindex + slen: tindex + slen + numvals*4])
 
                 for varname, value in zip(vnames[(lue, section)], c):
                     opertype.append(optype)
@@ -99,13 +120,18 @@ def _collect(binfilename):
                     values.append(value)
 
     index = pd.MultiIndex.from_arrays([
-              np.array(opertype),
-              np.array(landuse_nos),
-              np.array(sections),
-              np.array(variable_names),
-              np.array(levels),
-              np.array(dates)], names=['opertype', 'land_use', 'section',
-                                       'variable_name', 'levels', 'Datetime'])
+                                      np.array(opertype),
+                                      np.array(landuse_nos),
+                                      np.array(sections),
+                                      np.array(variable_names),
+                                      np.array(levels),
+                                      np.array(dates)],
+                                      names=['opertype',
+                                             'land_use',
+                                             'section',
+                                             'variable_name',
+                                             'levels',
+                                             'Datetime'])
 
     return pd.DataFrame({'value': values}, index=index).sort()
 
@@ -122,20 +148,22 @@ def _catalog_data(ndata):
 def catalog(hbnfilename):
     '''
     Prints out a catalog of data sets in the binary file.
+
     :param hbnfilename: The HSPF binary output file
     '''
     ndata = _collect(hbnfilename)
     cdata = _catalog_data(ndata)
     try:
-        for ot,lu,sec,vn in cdata:
-            nrows = ndata.ix[ot,int(lu),sec,vn]
+        for ot, lu, sec, vn in cdata:
+            nrows = ndata.ix[ot, int(lu), sec, vn]
             levels = sorted(set(nrows.index.get_level_values('levels')))
             for lev in levels:
-                nrows = ndata.ix[ot,int(lu),sec,vn,lev]
+                nrows = ndata.ix[ot, int(lu), sec, vn, lev]
                 maxdate = max(nrows.index)
                 mindate = min(nrows.index)
-                print '{0},{1},{2},{3}, {4}, {5}, {6}'.format(ot, lu, sec, vn, mindate,
-                    maxdate, code2intervalmap[lev])
+                print('{0},{1},{2},{3}, {4}, {5}, {6}'.format(
+                    ot, lu, sec, vn, mindate,
+                    maxdate, code2intervalmap[lev]))
     except IOError:
         return
 
@@ -152,9 +180,9 @@ def _process_label_lists(ndata, llist):
     not_in_file = []
     for label in llist:
         try:
-            ot,lu,sec,vn,lev = label.split(',')
+            ot, lu, sec, vn, lev = label.split(',')
         except AttributeError:
-            ot,lu,sec,vn,lev = label
+            ot, lu, sec, vn, lev = label
         if lu in testlist:
             lu = ''
         else:
@@ -165,18 +193,18 @@ def _process_label_lists(ndata, llist):
         # If not just append label to final_lab
         wildcards = False
         for testl in testlist:
-            if testl in [ot,lu,sec,vn,lev]:
+            if testl in [ot, lu, sec, vn, lev]:
                 wildcards = True
         if not wildcards:
-            if (ot,lu,sec,vn,lev) in labdat:
-                final_lab.append((ot,lu,sec,vn,lev))
+            if (ot, lu, sec, vn, lev) in labdat:
+                final_lab.append((ot, lu, sec, vn, lev))
             else:
                 not_in_file.append(label)
             continue
 
         # Handle wildcards...
         tmpdat = labdat
-        for index,labpart in enumerate([ot,lu,sec,vn,lev]):
+        for index, labpart in enumerate([ot, lu, sec, vn, lev]):
             if labpart not in testlist:
                 tmpdat = [i for i in tmpdat if i[index] == labpart]
         if len(tmpdat) == 0:
@@ -185,11 +213,18 @@ def _process_label_lists(ndata, llist):
         final_lab = final_lab + tmpdat
 
     if not final_lab:
-        raise ValueError('The specifications matched no records in the '
-                                 'binary file')
+        raise ValueError('''
+*
+*   The label specifications matched no records in the binary file.
+*
+''')
     if not_in_file:
-        warnings.warn('The specification{0} {1} matched no records in the '
-                'binary file'.format("s"[len(not_in_file)==1:], not_in_file))
+        warnings.warn('''
+*
+*   The specification{0} {1}
+*   matched no records in the binary file.
+*
+'''.format("s"[len(not_in_file) == 1:], not_in_file))
     return final_lab
 
 
@@ -212,14 +247,15 @@ def _collect_time_series(ndata, labels, time_stamp):
         ALL labels.
     '''
     for label in labels:
-        ot,lu,sec,vn,lev = label
-        nrows = ndata.ix[ot,int(lu),sec,vn,int(lev)]
+        ot, lu, sec, vn, lev = label
+        nrows = ndata.ix[ot, int(lu), sec, vn, int(lev)]
         # Had to leave off the to_period option - couldn't dump different
         # interval series and didn't benefit printing at all since the to_csv
         # command does not pretty print the period.
         tmpres = pd.DataFrame(nrows['value'],
-                 columns=['{0}_{1}_{2}_{3}'.format(ot, lu, vn,
-                     lev)])#.to_period(freq=code2freqmap[int(lev)])
+                              columns=['{0}_{1}_{2}_{3}'.format(
+                                  ot, lu, vn, lev)])
+                              #.to_period(freq=code2freqmap[int(lev)])
 
         if time_stamp == 'begin':
             tmpres = tmpres.tshift(-1)
@@ -231,9 +267,10 @@ def _collect_time_series(ndata, labels, time_stamp):
 
 
 @baker.command
-def time_series(hbnfilename, interval, *labels, **kwds): #time_stamp='begin', sort=False):
+def time_series(hbnfilename, interval, *labels, **kwds):
     '''
     Prints out data to the screen from a HSPF binary output file.
+
     :param hbnfilename: The HSPF binary output file
     :param interval: One of 'yearly', 'monthly', 'daily', or 'BIVL'.
         The 'BIVL' option is a sub-daily interval defined in the UCI file.
@@ -265,28 +302,38 @@ def time_series(hbnfilename, interval, *labels, **kwds): #time_stamp='begin', so
     except KeyError:
         sort = False
     if time_stamp not in ['begin', 'end']:
-        raise ValueError('The "time_stamp" optional keyword must be either '
-            '"begin" or "end".  You gave {0}'.format(time_stamp))
+        raise ValueError('''
+*
+*   The "time_stamp" optional keyword must be either
+*   "begin" or "end".  You gave {0}.
+*
+'''.format(time_stamp))
 
     if interval.lower() not in ['bivl', 'daily', 'monthly', 'yearly']:
-        raise ValueError('The "interval" arguement must be one of "bivl", '
-                         '"daily", "monthly", or "yearly".  You supplied '
-                         '"{0}"'.format(interval))
+        raise ValueError('''
+*
+*   The "interval" arguement must be one of "bivl",
+*   "daily", "monthly", or "yearly".  You supplied
+*   "{0}".
+*
+'''.format(interval))
     interval = interval.lower()
 
     ndata = _collect(hbnfilename)
-    lablist = ['{0},{1}'.format(i, interval2codemap[interval.lower()]) for i in labels]
+    lablist = ['{0},{1}'.format(i, interval2codemap[interval.lower()])
+               for i in labels]
     lablist = _process_label_lists(ndata, lablist)
     if sort:
         lablist = sorted(set(lablist))
-    tsutils.printiso(_collect_time_series(ndata, lablist,
-        time_stamp=time_stamp))
+    return tsutils.printiso(_collect_time_series(ndata, lablist,
+                            time_stamp=time_stamp))
 
 
 @baker.command
 def dump(hbnfilename):
     '''
     Prints out ALL data to the screen from a HSPF binary output file.
+
     :param hbnfilename: The HSPF binary output file
     '''
     ndata = _collect(hbnfilename)
@@ -296,13 +343,15 @@ def dump(hbnfilename):
                 ndata.index.get_level_values('variable_name'))
     cdata = sorted(set(cdata))
     ncdata = []
-    for ot,lu,sec,vn in cdata:
-        nrows = ndata.ix[ot,int(lu),sec,vn]
+    for ot, lu, sec, vn in cdata:
+        nrows = ndata.ix[ot, int(lu), sec, vn]
         levels = sorted(set(nrows.index.get_level_values('levels')))
         lev = levels[0]
-        ncdata.append([ot,lu,sec,vn,lev])
-    tsutils.printiso(_collect_time_series(ndata, ncdata))
+        ncdata.append([ot, lu, sec, vn, lev])
+    return tsutils.printiso(_collect_time_series(ndata, ncdata))
 
 
 def main():
+    if not os.path.exists('debug_hspfbintoolbox'):
+        sys.tracebacklimit = 0
     baker.run()
