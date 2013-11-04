@@ -4,7 +4,7 @@ import sys, os
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 
-version=open("VERSION").readline().strip()
+version = open("VERSION").readline().strip()
 
 install_requires = [
     # List your project dependencies here.
@@ -14,7 +14,7 @@ install_requires = [
     'python-dateutil >= 2.1',    # python-dateutil-2.0 is for Python 3.0
     'pandas >= 0.9.0',
     'tstoolbox >= 0.5',
-    'construct >= 2.5',
+    'construct >= 2.0',
 ]
 
 
