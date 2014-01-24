@@ -232,7 +232,7 @@ def _process_label_lists(ndata, llist):
     return final_lab
 
 
-def _collect_time_series(ndata, labels, time_stamp):
+def _collect_time_series(ndata, labels, time_stamp='begin'):
     '''
     Private to prints out data to the screen from a HSPF binary output file.
     :param ndata: The data to print out
