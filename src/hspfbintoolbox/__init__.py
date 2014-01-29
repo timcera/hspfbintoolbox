@@ -211,6 +211,8 @@ def _process_label_lists(ndata, llist):
         for index, labpart in enumerate([ot, lu, sec, vn, lev]):
             if labpart not in testlist:
                 tmpdat = [i for i in tmpdat if i[index] == labpart]
+                tmpdat = list(set(tmpdat))
+                tmpdat.sort()
         if len(tmpdat) == 0:
             not_in_file.append(label)
             continue
@@ -259,7 +261,6 @@ def _collect_time_series(ndata, labels, time_stamp='begin'):
         tmpres = pd.DataFrame(nrows['value'],
                               columns=['{0}_{1}_{2}_{3}'.format(
                                   ot, lu, vn, lev)])
-
         if time_stamp == 'begin':
             tmpres = tmpres.tshift(-1)
         try:
