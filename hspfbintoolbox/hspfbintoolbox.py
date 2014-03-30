@@ -6,11 +6,13 @@ import datetime
 import warnings
 import os
 import sys
+import struct
 
 from construct import *
 import numpy as np
 import baker
 import pandas as pd
+import six
 
 from tstoolbox import tsutils
 
@@ -31,247 +33,197 @@ code2freqmap = {5: 'Y',
                 2: None}
 
 
-def _collect(binfilename):
-    fl = open(binfilename, 'r').read()
-
-    landuse_nos = []
-    opertype = []
-    variable_names = []
-    levels = []
-    values = []
-    dates = []
-    sections = []
-
-    for optype in ['PERLND', 'IMPLND', 'RCHRES']:
-        vnames = {}
-
-        tindex = 0
-        while 1:
-            tindex = fl.find(optype, tindex + 1)
-            if tindex == -1:
-                break
-            rectype = ULInt32("rectype").parse(fl[tindex - 4: tindex])
-            lue = ULInt32("lue").parse(fl[tindex + 8: tindex + 12])
-            slen = 20
-            section = String("section", 8).parse(
-                fl[tindex + 12: tindex + slen])
-            if rectype == 0:
-                reclen1 = int(ULInt8("reclen1").parse(
-                    fl[tindex - 8: tindex - 7]) / 4.0)
-                reclen2 = ULInt8("reclen2").parse(
-                    fl[tindex - 7: tindex - 6])*64 + reclen1
-                reclen3 = ULInt8("reclen3").parse(
-                    fl[tindex - 6: tindex - 5])*256*64 + reclen2
-                reclen = ULInt8("reclen").parse(
-                    fl[tindex - 5: tindex - 4])*256**2*64 + reclen3
-                # Header record
-                while 1:
-                    length = ULInt32("length").parse(fl[tindex + slen:
-                                                        tindex + slen + 4])
-                    variable_name = String("vars", length).parse(
-                        fl[tindex + slen + 4: tindex + slen + 4 + length])
-                    vnames.setdefault((lue, section), []).append(variable_name)
-                    if slen + 8 + length >= reclen:
-                        break
-                    slen = slen + 4 + length
-
-            if rectype == 1:
-                # Data record
-                numvals = len(vnames[(lue, section)])
-                unit_flag = ULInt32("unit_flag").parse(
-                    fl[tindex + slen: tindex + slen + 4])
-                slen = slen + 4
-                level = ULInt32("level").parse(
-                    fl[tindex + slen: tindex + slen + 4])
-                slen = slen + 4
-                year = ULInt32("year").parse(
-                    fl[tindex + slen: tindex + slen + 4])
-                slen = slen + 4
-                month = ULInt32("month").parse(
-                    fl[tindex + slen: tindex + slen + 4])
-                slen = slen + 4
-                day = ULInt32("day").parse(
-                    fl[tindex + slen: tindex + slen + 4])
-                slen = slen + 4
-                hour = ULInt32("hour").parse(
-                    fl[tindex + slen: tindex + slen + 4])
-                slen = slen + 4
-                minute = ULInt32("minute").parse(
-                    fl[tindex + slen: tindex + slen + 4])
-                slen = slen + 4
-
-                if hour == 24:
-                    ndate = datetime.datetime(year, month, day) + \
-                        datetime.timedelta(hours=24) + \
-                        datetime.timedelta(minutes=minute)
-                else:
-                    ndate = datetime.datetime(year, month, day, hour, minute)
-
-                c = Array(numvals, LFloat32('PERVARS')).parse(
-                    fl[tindex + slen: tindex + slen + numvals*4])
-
-                for varname, value in zip(vnames[(lue, section)], c):
-                    opertype.append(optype)
-                    landuse_nos.append(lue)
-                    sections.append(section.strip())
-                    variable_names.append(varname.strip())
-                    levels.append(level)
-                    dates.append(ndate)
-                    values.append(value)
-
-    index = pd.MultiIndex.from_arrays([
-                                      np.array(opertype),
-                                      np.array(landuse_nos),
-                                      np.array(sections),
-                                      np.array(variable_names),
-                                      np.array(levels),
-                                      np.array(dates)],
-                                      names=['opertype',
-                                             'land_use',
-                                             'section',
-                                             'variable_name',
-                                             'levels',
-                                             'Datetime'])
-
-    return pd.DataFrame({'value': values}, index=index).sort()
+def tupleMatch(a, b):
+    return len(a) == len(b) and all(i is None or j is None or i == j for i, j in zip(a, b))
 
 
-def _catalog_data(ndata):
-    cdata = zip(ndata.index.get_level_values('opertype'),
-                ndata.index.get_level_values('land_use'),
-                ndata.index.get_level_values('section'),
-                ndata.index.get_level_values('variable_name'))
-    return sorted(set(cdata))
+def tupleCombine(a, b):
+    return tuple([i is None and j or i for i, j in zip(a, b)])
 
 
-@baker.command
-def catalog(hbnfilename):
-    '''
-    Prints out a catalog of data sets in the binary file.
+def tupleSearch(findme, haystack):
+    return [(i, tupleCombine(findme, h)) for i, h in enumerate(haystack) if tupleMatch(findme, h)]
 
-    :param hbnfilename: The HSPF binary output file
-    '''
-    ndata = _collect(hbnfilename)
-    cdata = _catalog_data(ndata)
+
+def _get_data(binfilename, interval='daily', labels=[',,,'], catalog_only=True):
+    testem = {'PERLND': ['ATEMP', 'SNOW', 'PWATER', 'SEDMNT',
+                         'PSTEMP', 'PWTGAS', 'PQUAL', 'MSTLAY',
+                         'PEST', 'NITR', 'PHOS', 'TRACER', ''],
+              'IMPLND': ['ATEMP', 'SNOW', 'IWATER', 'SOLIDS',
+                         'IWTGAS', 'IQUAL', ''],
+              'RCHRES': ['HYDR', 'CONS', 'HTRCH', 'SEDTRN',
+                         'GQUAL', 'OXRX', 'NUTRX', 'PLANK',
+                         'PHCARB', 'INFLOW', 'OFLOW', 'ROFLOW', ''],
+              '': ['']
+              }
+
+    collect_dict = {}
+    lablist = []
+
+    # Normalize interval code
     try:
-        for ot, lu, sec, vn in cdata:
-            nrows = ndata.ix[ot, int(lu), sec, vn]
-            levels = sorted(set(nrows.index.get_level_values('levels')))
-            for lev in levels:
-                nrows = ndata.ix[ot, int(lu), sec, vn, lev]
-                maxdate = nrows.index[-1]
-                tmpres = pd.DataFrame(nrows['value'],
-                              columns=['{0}_{1}_{2}_{3}'.format(
-                                  ot, lu, vn, lev)])
-                tmpres = tmpres.tshift(-1)
-                mindate = tmpres.index[0]
-                print('{0},{1},{2},{3}, {4}, {5}, {6}'.format(
-                    ot, lu, sec, vn, mindate,
-                    maxdate, code2intervalmap[lev]))
-    except IOError:
-        return
+        intervalcode = interval2codemap[interval.lower()]
+    except AttributeError:
+        intervalcode = None
 
+    # Fixup and test the labels - could be in it's own function
+    for lindex, label in enumerate(labels):
+        words = [lindex] + label.split(',')
+        if len(words) != 5:
+            raise ValueError('''
+*
+*   The label '{0}' has the wrong number of entries.
+*
+'''.format(label))
 
-def _process_label_lists(ndata, llist):
-    nlabels = []
-    testlist = ['', '*']
-    final_lab = []
-    labdat = zip(ndata.index.get_level_values('opertype'),
-                 ndata.index.get_level_values('land_use'),
-                 ndata.index.get_level_values('section'),
-                 ndata.index.get_level_values('variable_name'),
-                 ndata.index.get_level_values('levels'))
-    not_in_file = []
-    for label in llist:
-        try:
-            ot, lu, sec, vn, lev = label.split(',')
-        except AttributeError:
-            ot, lu, sec, vn, lev = label
-        if lu in testlist:
-            lu = ''
-        else:
-            lu = int(lu)
-        lev = int(lev)
+        if words[1]:
+            words[1] = words[1].upper()
+            if words[1] not in testem.keys():
+                raise ValueError('''
+*
+*   Operation type must be one of 'PERLND', 'IMPLND', or 'RCHRES',
+*   or missing (to get all) instead of {0}.
+*
+'''.format(words[1]))
 
-        # Test to see if any wildcards are in list...
-        # If not just append label to final_lab
-        wildcards = False
-        for testl in testlist:
-            if testl in [ot, lu, sec, vn, lev]:
-                wildcards = True
-        if not wildcards:
-            if (ot, lu, sec, vn, lev) in labdat:
-                final_lab.append((ot, lu, sec, vn, lev))
+        if words[2]:
+            try:
+                words[2] = int(words[2])
+                if words[2] < 1 or words[2] > 999:
+                    raise ValueError()
+            except (ValueError, TypeError):
+                raise ValueError('''
+*
+*   The land use element must be an integer from 1 to 999 inclusive,
+*   instead of {0}.
+*
+'''.format(words[2]))
+
+        if words[3]:
+            words[3] = words[3].upper()
+            if words[3] not in testem[words[1]]:
+                raise ValueError('''
+*
+*   The {0} operation type only allows the sections:
+*   {1},
+*   instead you gave {2}.
+*
+'''.format(words[1], testem[words[1]][:-1], words[3]))
+
+        for index in list(range(len(words))):
+            if words[index] is '':
+                words[index] = None
+
+        words.append(intervalcode)
+        lablist.append(words)
+
+    fl = open(binfilename, 'rb')
+
+    mindate = datetime.datetime.max
+    maxdate = datetime.datetime.min
+
+    labeltest = {}
+    vnames = {}
+    ndates = {}
+    tindex = 0
+    optype_list = [six.b('PERLND'), six.b('IMPLND'), six.b('RCHRES')]
+    while 1:
+        fl.seek(tindex)
+        initial_search = fl.read(25)
+        search_index = [initial_search.find(i) for i in optype_list]
+        maxsindex = max(search_index)
+        search_index_list = [maxsindex if i == -1 else i for i in search_index]
+        search_index = min(search_index_list)
+        if search_index == -1:
+            break
+        tindex = tindex + search_index - 4
+        fl.seek(tindex)
+        rectype, optype, lue, section = struct.unpack('I8sI8s',
+                                                      fl.read(24))
+        optype = optype.strip()
+        section = section.strip()
+        lue = int(lue)
+
+        if rectype == 0:
+            fl.seek(tindex - 4)
+            reclen1, reclen2, reclen3, reclen = struct.unpack('4B',
+                                                              fl.read(4))
+            reclen1 = int(reclen1/4)
+            reclen2 = reclen2*64 + reclen1
+            reclen3 = reclen3*16384 + reclen2
+            reclen = reclen*4194304 + reclen3
+            fl.seek(tindex + 24)
+            slen = 0
+            while slen < reclen - 28:
+                length = struct.unpack('I', fl.read(4))[0]
+                slen = slen + length + 4
+                variable_name = struct.unpack('{0}s'.format(length),
+                                              fl.read(length))[0]
+                vnames.setdefault((lue, section), []).append(variable_name)
+
+        if rectype == 1:
+            # Data record
+            numvals = len(vnames[(lue, section)])
+
+            unit_flag, level, year, month, day, hour, minute = struct.unpack('7I', fl.read(28))
+
+            vals = struct.unpack('{0}f'.format(numvals),
+                                 fl.read(4*numvals))
+            if hour == 24:
+                ndate = datetime.datetime(year, month, day) + \
+                    datetime.timedelta(hours=24) + \
+                    datetime.timedelta(minutes=minute)
             else:
-                not_in_file.append(label)
-            continue
+                ndate = datetime.datetime(year, month, day, hour, minute)
 
-        # Handle wildcards...
-        tmpdat = labdat
-        for index, labpart in enumerate([ot, lu, sec, vn, lev]):
-            if labpart not in testlist:
-                tmpdat = [i for i in tmpdat if i[index] == labpart]
-                tmpdat = list(set(tmpdat))
-                tmpdat.sort()
-        if len(tmpdat) == 0:
-            not_in_file.append(label)
-            continue
-        final_lab = final_lab + tmpdat
+            for i, vname in enumerate(vnames[(lue, section)]):
+                tmpkey = (None,
+                          optype.decode('ascii'),
+                          int(lue),
+                          section.decode('ascii'),
+                          vname.decode('ascii'),
+                          level)
+                if catalog_only is False:
+                    res = tupleSearch(tmpkey, lablist)
+                    if res:
+                        nres = (res[0][0],) + res[0][1][1:]
+                        labeltest[nres[0]] = 1
+                        collect_dict.setdefault(nres, []).append(vals[i])
+                        ndates.setdefault(level, {})
+                        ndates[level][ndate] = 1
+                else:
+                    mindate = min(mindate, ndate)
+                    maxdate = max(maxdate, ndate)
+                    collect_dict[tmpkey] = (mindate, maxdate)
+        tindex = fl.tell()
 
-    if not final_lab:
+    fl.close()
+
+    if not collect_dict:
         raise ValueError('''
 *
 *   The label specifications matched no records in the binary file.
 *
 ''')
-    if not_in_file:
-        warnings.warn('''
+
+    if catalog_only is False:
+        not_in_file = []
+        for loopcnt in list(range(len(lablist))):
+            if loopcnt not in labeltest.keys():
+                not_in_file.append(labels[loopcnt])
+        if not_in_file:
+            warnings.warn('''
 *
 *   The specification{0} {1}
 *   matched no records in the binary file.
 *
 '''.format("s"[len(not_in_file) == 1:], not_in_file))
-    return final_lab
 
-
-def _collect_time_series(ndata, labels, time_stamp='begin'):
-    '''
-    Private to prints out data to the screen from a HSPF binary output file.
-    :param ndata: The data to print out
-    :param labels: The remaining arguments uniquely identify a time-series
-        in the binary file.  The format is
-        'OPERATIONTYPE,ID,SECTION,VARIABLE'.
-        For example: PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS
-
-        Leaving a section blank will wildcard that specification.  To get all
-        the PWATER variables for PERLND 101 the label would read:
-        PERLND,101,PWATER,
-    :param time_stamp: For the interval defines the location of the time
-        stamp. If set to 'begin', the time stamp is at the begining of the
-        interval.  If set to any other string, the reported time stamp will
-        represent the end of the interval.  Default is 'begin'.  Place after
-        ALL labels.
-    '''
-    for label in labels:
-        ot, lu, sec, vn, lev = label
-        nrows = ndata.ix[ot, int(lu), sec, vn, int(lev)]
-        # Had to leave off the to_period option - couldn't dump different
-        # interval series and didn't benefit printing at all since the to_csv
-        # command does not pretty print the period.
-        tmpres = pd.DataFrame(nrows['value'],
-                              columns=['{0}_{1}_{2}_{3}'.format(
-                                  ot, lu, vn, lev)])
-        if time_stamp == 'begin':
-            tmpres = tmpres.tshift(-1)
-        try:
-            result = result.join(tmpres)
-        except NameError:
-            result = tmpres
-    return result
+    return ndates, collect_dict
 
 
 @baker.command
-def time_series(hbnfilename, interval, *labels, **kwds):
+def extract(hbnfilename, interval, *labels, **kwds):
     '''
     Prints out data to the screen from a HSPF binary output file.
 
@@ -296,15 +248,10 @@ def time_series(hbnfilename, interval, *labels, **kwds):
     :param sorted: Should the columns be sorted?
         Default is False.  Place after ALL labels.
     '''
-
     try:
         time_stamp = kwds['time_stamp']
     except KeyError:
         time_stamp = 'begin'
-    try:
-        sort = kwds['sort']
-    except KeyError:
-        sort = False
     if time_stamp not in ['begin', 'end']:
         raise ValueError('''
 *
@@ -313,47 +260,129 @@ def time_series(hbnfilename, interval, *labels, **kwds):
 *
 '''.format(time_stamp))
 
-    if interval.lower() not in ['bivl', 'daily', 'monthly', 'yearly']:
+    interval = interval.lower()
+    if interval not in ['bivl', 'daily', 'monthly', 'yearly']:
         raise ValueError('''
 *
-*   The "interval" arguement must be one of "bivl",
+*   The "interval" argument must be one of "bivl",
 *   "daily", "monthly", or "yearly".  You supplied
 *   "{0}".
 *
 '''.format(interval))
-    interval = interval.lower()
 
-    ndata = _collect(hbnfilename)
-    lablist = ['{0},{1}'.format(i, interval2codemap[interval.lower()])
-               for i in labels]
-    lablist = _process_label_lists(ndata, lablist)
-    if sort:
-        lablist = sorted(set(lablist))
-    return tsutils.printiso(_collect_time_series(ndata, lablist,
-                            time_stamp=time_stamp))
+    index, data = _get_data(hbnfilename, interval, labels, catalog_only=False)
+    index = index[interval2codemap[interval]]
+    index = list(index.keys())
+    index.sort()
+    skeys = list(data.keys())
+    skeys.sort()
+    for label in skeys:
+        order, ot, lu, sec, vn, lev = label
+
+        tmpres = pd.DataFrame(data[label],
+                              columns=['{0}_{1:03d}_{2}_{3}'.format(
+                                       ot, lu, vn, lev)],
+                              index=index)
+        try:
+            result = result.join(tmpres)
+        except NameError:
+            result = tmpres
+
+    if time_stamp == 'begin':
+        result = tsutils.asbestfreq(result)[0]
+        result = result.tshift(-1)
+
+    return tsutils.printiso(result)
 
 
 @baker.command
-def dump(hbnfilename):
+def catalog(hbnfilename):
     '''
-    Prints out ALL data to the screen from a HSPF binary output file.
+    Prints out a catalog of data sets in the binary file.
 
     :param hbnfilename: The HSPF binary output file
     '''
-    ndata = _collect(hbnfilename)
-    cdata = zip(ndata.index.get_level_values('opertype'),
-                ndata.index.get_level_values('land_use'),
-                ndata.index.get_level_values('section'),
-                ndata.index.get_level_values('variable_name'))
-    cdata = sorted(set(cdata))
-    ncdata = []
-    for ot, lu, sec, vn in cdata:
-        nrows = ndata.ix[ot, int(lu), sec, vn]
-        levels = sorted(set(nrows.index.get_level_values('levels')))
-        lev = levels[0]
-        ncdata.append([ot, lu, sec, vn, lev])
-    return tsutils.printiso(_collect_time_series(ndata, ncdata))
+    import sys
+    try:
+        oldtracebacklimit = sys.tracebacklimit
+    except AttributeError:
+        oldtracebacklimit = 1000
+    sys.tracebacklimit = 1000
+    import traceback
+    import os.path
+    baker_cli = False
+    for i in traceback.extract_stack():
+        if os.path.basename(i[0]) == 'baker.py':
+            baker_cli = True
+            break
 
+    catlog = _get_data(hbnfilename, None, [',,,'], catalog_only=True)[1]
+    if baker_cli is False:
+        return catlog
+    catkeys = list(catlog.keys())
+    catkeys.sort()
+    for cat in catkeys:
+        print('{0},{1},{2},{3}, {5}, {6}, {7}'.format(*(cat[1:] + catlog[cat] +
+            (code2intervalmap[cat[-1]],))))
+
+
+@baker.command
+def dump(hbnfilename, time_stamp='begin'):
+    '''
+    Prints out ALL data from a HSPF binary output file.
+
+    :param hbnfilename: The HSPF binary output file
+    :param time_stamp: For the interval defines the location of the time
+        stamp. If set to 'begin', the time stamp is at the begining of the
+        interval.  If set to any other string, the reported time stamp will
+        represent the end of the interval.  Default is 'begin'.
+    '''
+    if time_stamp not in ['begin', 'end']:
+        raise ValueError('''
+*
+*   The "time_stamp" optional keyword must be either
+*   "begin" or "end".  You gave {0}.
+*
+'''.format(time_stamp))
+
+    index, data = _get_data(hbnfilename, None, [',,,'], catalog_only=False)
+    skeys = list(data.keys())
+    skeys.sort()
+    ikeys = list(index.keys())
+    ikeys.sort()
+    for ikey in ikeys:
+        nindex = index[ikey].keys()
+        nindex.sort()
+        for label in skeys:
+            order, ot, lu, sec, vn, lev = label
+
+            tmpres = pd.DataFrame(data[label],
+                                  columns=['{0}_{1:03d}_{2}_{3}'.format(
+                                           ot, lu, vn, lev)],
+                                  index=nindex)
+            try:
+                result = result.join(tmpres)
+            except NameError:
+                result = tmpres
+
+        if time_stamp == 'begin':
+            result = tsutils.asbestfreq(result)[0]
+            result = result.tshift(-1)
+
+        try:
+            fresult = fresult.join(result)
+        except NameError:
+            fresult = result
+        del result
+
+    return tsutils.printiso(fresult)
+
+
+@baker.command
+def time_series(hbnfilename, interval, *labels, **kwds):
+    ''' DEPRECATED: Use 'extract' instead.
+    '''
+    return extract(hbnfilename, interval, *labels, **kwds)
 
 def main():
     if not os.path.exists('debug_hspfbintoolbox'):
