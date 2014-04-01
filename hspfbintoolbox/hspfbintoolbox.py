@@ -280,7 +280,7 @@ def extract(hbnfilename, interval, *labels, **kwds):
         order, ot, lu, sec, vn, lev = label
 
         tmpres = pd.DataFrame(data[label],
-                              columns=['{0}_{1:03d}_{2}_{3}'.format(
+                              columns=['{0}_{1}_{2}_{3}'.format(
                                        ot, lu, vn, lev)],
                               index=index)
         try:
