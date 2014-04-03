@@ -34,7 +34,8 @@ code2freqmap = {5: 'Y',
 
 
 def tupleMatch(a, b):
-    return len(a) == len(b) and all(i is None or j is None or i == j for i, j in zip(a, b))
+    return len(a) == len(b) and all(i is None or j is None or i == j
+                                    for i, j in zip(a, b))
 
 
 def tupleCombine(a, b):
@@ -42,10 +43,14 @@ def tupleCombine(a, b):
 
 
 def tupleSearch(findme, haystack):
-    return [(i, tupleCombine(findme, h)) for i, h in enumerate(haystack) if tupleMatch(findme, h)]
+    return [(i, tupleCombine(findme, h))
+            for i, h in enumerate(haystack) if tupleMatch(findme, h)]
 
 
-def _get_data(binfilename, interval='daily', labels=[',,,'], catalog_only=True):
+def _get_data(binfilename,
+              interval='daily',
+              labels=[',,,'],
+              catalog_only=True):
     testem = {'PERLND': ['ATEMP', 'SNOW', 'PWATER', 'SEDMNT',
                          'PSTEMP', 'PWTGAS', 'PQUAL', 'MSTLAY',
                          'PEST', 'NITR', 'PHOS', 'TRACER', ''],
@@ -165,7 +170,13 @@ def _get_data(binfilename, interval='daily', labels=[',,,'], catalog_only=True):
             # Data record
             numvals = len(vnames[(lue, section)])
 
-            unit_flag, level, year, month, day, hour, minute = struct.unpack('7I', fl.read(28))
+            (unit_flag,
+             level,
+             year,
+             month,
+             day,
+             hour,
+             minute) = struct.unpack('7I', fl.read(28))
 
             vals = struct.unpack('{0}f'.format(numvals),
                                  fl.read(4*numvals))
@@ -235,21 +246,30 @@ def extract(hbnfilename, interval, *labels, **kwds):
     :param labels: The remaining arguments uniquely identify a time-series
         in the binary file.  The format is
         'OPERATIONTYPE,ID,SECTION,VARIABLE'.
-        For example: PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS
 
-        Leaving a section blank will wildcard that specification.  To get all
-        the PWATER variables for PERLND 101 the label would read:
-        PERLND,101,PWATER,
+        For example: 'PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS'
+
+        Leaving a section without an entry will wildcard that
+        specification.  To get all the PWATER variables for PERLND 101 the
+        label would read:
+
+        'PERLND,101,PWATER,'
+
+        To get TAET for all PERLNDs:
+
+        'PERLND,,,TAET'
+
+        Note that there are spaces ONLY between label specifications.
     :param time_stamp: For the interval defines the location of the time
         stamp. If set to 'begin', the time stamp is at the begining of the
         interval.  If set to any other string, the reported time stamp will
         represent the end of the interval.  Default is 'begin'.  Place after
         ALL labels.
-    :param sorted: Should the columns be sorted?
+    :param sorted: Should ALL columns be sorted?
         Default is False.  Place after ALL labels.
     '''
     try:
-        time_stamp = kwds['time_stamp']
+        time_stamp = kwds.pop('time_stamp')
     except KeyError:
         time_stamp = 'begin'
     if time_stamp not in ['begin', 'end']:
@@ -259,6 +279,26 @@ def extract(hbnfilename, interval, *labels, **kwds):
 *   "begin" or "end".  You gave {0}.
 *
 '''.format(time_stamp))
+
+    try:
+        sortall = bool(kwds.pop('sorted'))
+    except KeyError:
+        sortall = False
+    if not(sortall is True or sortall is False):
+        raise ValueError('''
+*
+*   The "sorted" optional keyword must be either
+*   True or False.  You gave {0}.
+*
+'''.format(sortall))
+
+    if len(kwds) > 0:
+        raise ValueError('''
+*
+*   The extract command only accepts optional keywords 'time_stamp' and
+*   'sorted'.  You gave {0}.
+*
+'''.format(list(kwds.keys())))
 
     interval = interval.lower()
     if interval not in ['bivl', 'daily', 'monthly', 'yearly']:
@@ -270,12 +310,16 @@ def extract(hbnfilename, interval, *labels, **kwds):
 *
 '''.format(interval))
 
-    index, data = _get_data(hbnfilename, interval, labels, catalog_only=False)
+    index, data = _get_data(hbnfilename, interval, labels,
+                            catalog_only=False)
     index = index[interval2codemap[interval]]
     index = list(index.keys())
     index.sort()
     skeys = list(data.keys())
-    skeys.sort()
+    if sortall is True:
+        skeys.sort(key=lambda tup: tup[1:])
+    else:
+        skeys.sort()
     for label in skeys:
         order, ot, lu, sec, vn, lev = label
 
@@ -300,6 +344,9 @@ def catalog(hbnfilename):
     '''
     Prints out a catalog of data sets in the binary file.
 
+    The first part of each line up to the first space is the label that can
+    be used with the 'extract' command.
+
     :param hbnfilename: The HSPF binary output file
     '''
     import sys
@@ -322,8 +369,9 @@ def catalog(hbnfilename):
     catkeys = list(catlog.keys())
     catkeys.sort()
     for cat in catkeys:
-        print('{0},{1},{2},{3}, {5}, {6}, {7}'.format(*(cat[1:] + catlog[cat] +
-            (code2intervalmap[cat[-1]],))))
+        print('{0},{1},{2},{3}  ,{5}, {6}, {7}'.format(
+              *(cat[1:] + catlog[cat] +
+               (code2intervalmap[cat[-1]],))))
 
 
 @baker.command
@@ -351,13 +399,13 @@ def dump(hbnfilename, time_stamp='begin'):
     ikeys = list(index.keys())
     ikeys.sort()
     for ikey in ikeys:
-        nindex = index[ikey].keys()
+        nindex = list(index[ikey].keys())
         nindex.sort()
         for label in skeys:
             order, ot, lu, sec, vn, lev = label
 
             tmpres = pd.DataFrame(data[label],
-                                  columns=['{0}_{1:03d}_{2}_{3}'.format(
+                                  columns=['{0}_{1}_{2}_{3}'.format(
                                            ot, lu, vn, lev)],
                                   index=nindex)
             try:
@@ -383,6 +431,7 @@ def time_series(hbnfilename, interval, *labels, **kwds):
     ''' DEPRECATED: Use 'extract' instead.
     '''
     return extract(hbnfilename, interval, *labels, **kwds)
+
 
 def main():
     if not os.path.exists('debug_hspfbintoolbox'):
