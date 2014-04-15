@@ -8,7 +8,6 @@ import os
 import sys
 import struct
 
-from construct import *
 import numpy as np
 import baker
 import pandas as pd

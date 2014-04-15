@@ -8,14 +8,12 @@ command line programs like `tstoolbox`.
 Requirements
 ============
 
-* pandas - on Windows this is part of the Python(x,y) distribution
-  (http://code.google.com/p/pythonxy/)
+* pandas - on Windows this is part of the Python(x,y), Enthought, or
+  Anaconda distributions
 
 * baker - command line parser
 
 * tstoolbox - utilities to process time-series
-
-* construct - a binary parser
 
 Installation
 ============
