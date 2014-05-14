@@ -121,93 +121,91 @@ def _get_data(binfilename,
         words.append(intervalcode)
         lablist.append(words)
 
-    fl = open(binfilename, 'rb')
+    with open(binfilename, 'rb') as fl:
 
-    mindate = datetime.datetime.max
-    maxdate = datetime.datetime.min
+        mindate = datetime.datetime.max
+        maxdate = datetime.datetime.min
 
-    labeltest = {}
-    vnames = {}
-    ndates = {}
-    tindex = 0
-    optype_list = [six.b('PERLND'), six.b('IMPLND'), six.b('RCHRES')]
-    while 1:
-        fl.seek(tindex)
-        initial_search = fl.read(25)
-        search_index = [initial_search.find(i) for i in optype_list]
-        maxsindex = max(search_index)
-        search_index_list = [maxsindex if i == -1 else i for i in search_index]
-        search_index = min(search_index_list)
-        if search_index == -1:
-            break
-        tindex = tindex + search_index - 4
-        fl.seek(tindex)
-        rectype, optype, lue, section = struct.unpack('I8sI8s',
-                                                      fl.read(24))
-        optype = optype.strip()
-        section = section.strip()
-        lue = int(lue)
+        labeltest = {}
+        vnames = {}
+        ndates = {}
+        tindex = 0
+        optype_list = [six.b('PERLND'), six.b('IMPLND'), six.b('RCHRES')]
+        while 1:
+            fl.seek(tindex)
+            initial_search = fl.read(25)
+            search_index = [initial_search.find(i) for i in optype_list]
+            maxsindex = max(search_index)
+            search_index_list = [maxsindex if i == -1 else i for i in search_index]
+            search_index = min(search_index_list)
+            if search_index == -1:
+                break
+            tindex = tindex + search_index - 4
+            fl.seek(tindex)
+            rectype, optype, lue, section = struct.unpack('I8sI8s',
+                                                          fl.read(24))
+            optype = optype.strip()
+            section = section.strip()
+            lue = int(lue)
 
-        if rectype == 0:
-            fl.seek(tindex - 4)
-            reclen1, reclen2, reclen3, reclen = struct.unpack('4B',
-                                                              fl.read(4))
-            reclen1 = int(reclen1/4)
-            reclen2 = reclen2*64 + reclen1
-            reclen3 = reclen3*16384 + reclen2
-            reclen = reclen*4194304 + reclen3
-            fl.seek(tindex + 24)
-            slen = 0
-            while slen < reclen - 28:
-                length = struct.unpack('I', fl.read(4))[0]
-                slen = slen + length + 4
-                variable_name = struct.unpack('{0}s'.format(length),
-                                              fl.read(length))[0]
-                vnames.setdefault((lue, section), []).append(variable_name)
+            if rectype == 0:
+                fl.seek(tindex - 4)
+                reclen1, reclen2, reclen3, reclen = struct.unpack('4B',
+                                                                  fl.read(4))
+                reclen1 = int(reclen1/4)
+                reclen2 = reclen2*64 + reclen1
+                reclen3 = reclen3*16384 + reclen2
+                reclen = reclen*4194304 + reclen3
+                fl.seek(tindex + 24)
+                slen = 0
+                while slen < reclen - 28:
+                    length = struct.unpack('I', fl.read(4))[0]
+                    slen = slen + length + 4
+                    variable_name = struct.unpack('{0}s'.format(length),
+                                                  fl.read(length))[0]
+                    vnames.setdefault((lue, section), []).append(variable_name)
 
-        if rectype == 1:
-            # Data record
-            numvals = len(vnames[(lue, section)])
+            if rectype == 1:
+                # Data record
+                numvals = len(vnames[(lue, section)])
 
-            (unit_flag,
-             level,
-             year,
-             month,
-             day,
-             hour,
-             minute) = struct.unpack('7I', fl.read(28))
+                (unit_flag,
+                 level,
+                 year,
+                 month,
+                 day,
+                 hour,
+                 minute) = struct.unpack('7I', fl.read(28))
 
-            vals = struct.unpack('{0}f'.format(numvals),
-                                 fl.read(4*numvals))
-            if hour == 24:
-                ndate = datetime.datetime(year, month, day) + \
-                    datetime.timedelta(hours=24) + \
-                    datetime.timedelta(minutes=minute)
-            else:
-                ndate = datetime.datetime(year, month, day, hour, minute)
-
-            for i, vname in enumerate(vnames[(lue, section)]):
-                tmpkey = (None,
-                          optype.decode('ascii'),
-                          int(lue),
-                          section.decode('ascii'),
-                          vname.decode('ascii'),
-                          level)
-                if catalog_only is False:
-                    res = tupleSearch(tmpkey, lablist)
-                    if res:
-                        nres = (res[0][0],) + res[0][1][1:]
-                        labeltest[nres[0]] = 1
-                        collect_dict.setdefault(nres, []).append(vals[i])
-                        ndates.setdefault(level, {})
-                        ndates[level][ndate] = 1
+                vals = struct.unpack('{0}f'.format(numvals),
+                                     fl.read(4*numvals))
+                if hour == 24:
+                    ndate = datetime.datetime(year, month, day) + \
+                        datetime.timedelta(hours=24) + \
+                        datetime.timedelta(minutes=minute)
                 else:
-                    mindate = min(mindate, ndate)
-                    maxdate = max(maxdate, ndate)
-                    collect_dict[tmpkey] = (mindate, maxdate)
-        tindex = fl.tell()
+                    ndate = datetime.datetime(year, month, day, hour, minute)
 
-    fl.close()
+                for i, vname in enumerate(vnames[(lue, section)]):
+                    tmpkey = (None,
+                              optype.decode('ascii'),
+                              int(lue),
+                              section.decode('ascii'),
+                              vname.decode('ascii'),
+                              level)
+                    if catalog_only is False:
+                        res = tupleSearch(tmpkey, lablist)
+                        if res:
+                            nres = (res[0][0],) + res[0][1][1:]
+                            labeltest[nres[0]] = 1
+                            collect_dict.setdefault(nres, []).append(vals[i])
+                            ndates.setdefault(level, {})[ndate] = 1
+                    else:
+                        mindate = min(mindate, ndate)
+                        maxdate = max(maxdate, ndate)
+                        collect_dict[tmpkey] = (mindate, maxdate)
+            tindex = fl.tell()
+
 
     if not collect_dict:
         raise ValueError('''
@@ -395,32 +393,30 @@ def dump(hbnfilename, time_stamp='begin'):
     index, data = _get_data(hbnfilename, None, [',,,'], catalog_only=False)
     skeys = list(data.keys())
     skeys.sort()
-    ikeys = list(index.keys())
-    ikeys.sort()
-    for ikey in ikeys:
-        nindex = list(index[ikey].keys())
+
+    for label in skeys:
+        order, ot, lu, sec, vn, lev = label
+        nindex = list(index[lev].keys())
         nindex.sort()
-        for label in skeys:
-            order, ot, lu, sec, vn, lev = label
 
-            tmpres = pd.DataFrame(data[label],
-                                  columns=['{0}_{1}_{2}_{3}'.format(
-                                           ot, lu, vn, lev)],
-                                  index=nindex)
-            try:
-                result = result.join(tmpres)
-            except NameError:
-                result = tmpres
-
-        if time_stamp == 'begin':
-            result = tsutils.asbestfreq(result)[0]
-            result = result.tshift(-1)
-
+        tmpres = pd.DataFrame(data[label],
+                              columns=['{0}_{1}_{2}_{3}'.format(
+                                       ot, lu, vn, lev)],
+                              index=nindex)
         try:
-            fresult = fresult.join(result)
+            result = result.join(tmpres)
         except NameError:
-            fresult = result
-        del result
+            result = tmpres
+
+    if time_stamp == 'begin':
+        result = tsutils.asbestfreq(result)[0]
+        result = result.tshift(-1)
+
+    try:
+        fresult = fresult.join(result)
+    except NameError:
+        fresult = result
+    del result
 
     return tsutils.printiso(fresult)
 
