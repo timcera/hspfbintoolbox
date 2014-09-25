@@ -346,22 +346,8 @@ def catalog(hbnfilename):
 
     :param hbnfilename: The HSPF binary output file
     '''
-    import sys
-    try:
-        oldtracebacklimit = sys.tracebacklimit
-    except AttributeError:
-        oldtracebacklimit = 1000
-    sys.tracebacklimit = 1000
-    import traceback
-    import os.path
-    baker_cli = False
-    for i in traceback.extract_stack():
-        if os.path.basename(i[0]) == 'baker.py':
-            baker_cli = True
-            break
-
     catlog = _get_data(hbnfilename, None, [',,,'], catalog_only=True)[1]
-    if baker_cli is False:
+    if tsutils.test_cli() is False:
         return catlog
     catkeys = list(catlog.keys())
     catkeys.sort()
