@@ -1,4 +1,6 @@
-# Example package with a console entry point
+'''
+hspfbintoolbox to read HSPF binary files.
+'''
 
 from __future__ import print_function
 
@@ -8,7 +10,6 @@ import os
 import sys
 import struct
 
-import numpy as np
 import baker
 import pandas as pd
 import six
@@ -33,15 +34,24 @@ code2freqmap = {5: 'Y',
 
 
 def tupleMatch(a, b):
+    '''Part of partial ordered matching.
+    See http://stackoverflow.com/a/4559604
+    '''
     return len(a) == len(b) and all(i is None or j is None or i == j
                                     for i, j in zip(a, b))
 
 
 def tupleCombine(a, b):
+    '''Part of partial ordered matching.
+    See http://stackoverflow.com/a/4559604
+    '''
     return tuple([i is None and j or i for i, j in zip(a, b)])
 
 
 def tupleSearch(findme, haystack):
+    '''Partial ordered matching with 'None' as wildcard
+    See http://stackoverflow.com/a/4559604
+    '''
     return [(i, tupleCombine(findme, h))
             for i, h in enumerate(haystack) if tupleMatch(findme, h)]
 
@@ -50,6 +60,9 @@ def _get_data(binfilename,
               interval='daily',
               labels=[',,,'],
               catalog_only=True):
+    '''Underlying function to read from the binary file.  Used by
+    'extract', 'catalog', and 'dump'.
+    '''
     testem = {'PERLND': ['ATEMP', 'SNOW', 'PWATER', 'SEDMNT',
                          'PSTEMP', 'PWTGAS', 'PQUAL', 'MSTLAY',
                          'PEST', 'NITR', 'PHOS', 'TRACER', ''],
@@ -59,7 +72,7 @@ def _get_data(binfilename,
                          'GQUAL', 'OXRX', 'NUTRX', 'PLANK',
                          'PHCARB', 'INFLOW', 'OFLOW', 'ROFLOW', ''],
               '': ['']
-              }
+             }
 
     collect_dict = {}
     lablist = []
@@ -136,7 +149,10 @@ def _get_data(binfilename,
             initial_search = fl.read(25)
             search_index = [initial_search.find(i) for i in optype_list]
             maxsindex = max(search_index)
-            search_index_list = [maxsindex if i == -1 else i for i in search_index]
+            search_index_list = [maxsindex
+                                 if i == -1
+                                 else i
+                                 for i in search_index]
             search_index = min(search_index_list)
             if search_index == -1:
                 break
@@ -322,7 +338,7 @@ def extract(hbnfilename, interval, *labels, **kwds):
 
         tmpres = pd.DataFrame(data[label],
                               columns=['{0}_{1}_{2}_{3}'.format(
-                                       ot, lu, vn, lev)],
+                                  ot, lu, vn, lev)],
                               index=index)
         try:
             result = result.join(tmpres)
@@ -353,8 +369,8 @@ def catalog(hbnfilename):
     catkeys.sort()
     for cat in catkeys:
         print('{0},{1},{2},{3}  ,{5}, {6}, {7}'.format(
-              *(cat[1:] + catlog[cat] +
-               (code2intervalmap[cat[-1]],))))
+            *(cat[1:] + catlog[cat] +
+              (code2intervalmap[cat[-1]],))))
 
 
 @baker.command
@@ -387,7 +403,7 @@ def dump(hbnfilename, time_stamp='begin'):
 
         tmpres = pd.DataFrame(data[label],
                               columns=['{0}_{1}_{2}_{3}'.format(
-                                       ot, lu, vn, lev)],
+                                  ot, lu, vn, lev)],
                               index=nindex)
         try:
             result = result.join(tmpres)
