@@ -2205,3 +2205,4 @@ PERLND,905,PWATER,UZS  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
         args = shlex.split(args)
         out = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0]
         self.assertEqual(out, self.catalog)
+
