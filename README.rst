@@ -6,7 +6,7 @@ screen.  The time series can then be redirected to file, or piped to other
 command line programs like `tstoolbox`.
 
 Requirements
-============
+------------
 
 * pandas - on Windows this is part of the Python(x,y), Enthought, or
   Anaconda distributions
@@ -16,17 +16,27 @@ Requirements
 * tstoolbox - utilities to process time-series
 
 Installation
-============
+------------
 Should be as easy as running ``pip install hspfbintoolbox`` or ``easy_install
 hspfbintoolbox`` at any command line.  Not sure on Windows whether this will
 bring in pandas but as mentioned above, if you start with Python(x,y) then
 you won't have a problem.
 
-Running
-=======
+Usage - Command Line
+--------------------
 Just run 'hspfbintoolbox' to get a list of subcommands:
 
-.. program-output:: hspfbintoolbox
+ catalog
+          Prints out a catalog of data sets in the binary file.
+
+ dump     
+          Prints out ALL data from a HSPF binary output file.
+
+ extract
+          Prints out data to the screen from a HSPF binary output file.
+
+ time_series  
+          DEPRECATED: Use 'extract' instead.
 
 The default for all of the subcommands is to accept data from stdin
 (typically a pipe).  If a subcommand accepts an input file for an argument,
@@ -35,21 +45,6 @@ you can use "--infile=filename", or to explicitly specify from stdin use
 
 For the subcommands that output data it is printed to the screen and you can
 then redirect to a file.
-
-Sub-command Detail
-''''''''''''''''''
-
-catalog
-~~~~~~~
-.. program-output:: hspfbintoolbox catalog --help
-
-dump
-~~~~
-.. program-output:: hspfbintoolbox dump --help
-
-time_series
-~~~~~~~~~~~
-.. program-output:: hspfbintoolbox time_series --help
 
 Usage - API
 -----------
@@ -67,9 +62,3 @@ Simply import hspfbintoolbox::
 
     # Once you have a PANDAS DataFrame you can use that as input.
     ntsd = tstoolbox.aggregate(statistic='mean', agg_interval='daily', input_ts=ntsd)
-
-Author
-======
-Tim Cera, P.E.
-
-tim at cerazone dot net

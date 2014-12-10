@@ -5,10 +5,6 @@ This is the home page for `hspfbintoolbox`.  The `hspfbintoolbox` is a
 command line program and Python library functions to dump data out of
 Hydrological Simulation Program - FORTRAN (HSPF) binary output files.
 
-Other Work
-----------
-http://timcera.bitbucket.org
-
 Table of Contents
 -----------------
 .. toctree::
@@ -16,12 +12,9 @@ Table of Contents
 
    readme
    contributing
+   authors
    license
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+Related Work
+------------
+http://timcera.bitbucket.org
