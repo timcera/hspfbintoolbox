@@ -1,3 +1,5 @@
+.. include:: ../BADGES.rst
+
 Documentation for hspfbintoolbox
 ================================
 
