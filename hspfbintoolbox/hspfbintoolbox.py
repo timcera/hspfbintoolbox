@@ -219,7 +219,7 @@ def _get_data(binfilename,
                     else:
                         mindate = min(mindate, ndate)
                         maxdate = max(maxdate, ndate)
-                        collect_dict[tmpkey] = (mindate, maxdate)
+                        collect_dict[tmpkey[1:]] = (mindate, maxdate)
             tindex = fl.tell()
 
 
@@ -369,7 +369,7 @@ def catalog(hbnfilename):
     catkeys.sort()
     for cat in catkeys:
         print('{0},{1},{2},{3}  ,{5}, {6}, {7}'.format(
-            *(cat[1:] + catlog[cat] +
+            *(cat + catlog[cat] +
               (code2intervalmap[cat[-1]],))))
 
 

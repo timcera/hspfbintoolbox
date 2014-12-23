@@ -11,7 +11,7 @@ Tests for `hspfbintoolbox` module.
 import shlex
 import subprocess
 from pandas.util.testing import TestCase
-from pandas.util.testing import assert_frame_equal
+from pandas.util.testing import assert_frame_equal, assert_equal
 import sys
 try:
     from cStringIO import StringIO
@@ -20,6 +20,11 @@ except:
 
 import pandas as pd
 from hspfbintoolbox import hspfbintoolbox
+
+interval2codemap = {'yearly': 5,
+                    'monthly': 4,
+                    'daily': 3,
+                    'bivl': 2}
 
 def capture(func, *args, **kwds):
     sys.stdout = StringIO()      # capture output
@@ -2196,9 +2201,21 @@ PERLND,905,PWATER,UZI  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
 PERLND,905,PWATER,UZS  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
 '''
 
-    #def catalog(self):
-    #    out = hspfbintoolbox.catalog('tests/6b_np1.hbn')
-    #    assert_frame_equal(out, self.catalog)
+    def test_catalog_api(self):
+        out = hspfbintoolbox.catalog('tests/6b_np1.hbn')
+        import csv
+        import datetime
+        import re
+        ndict = {}
+        rd = csv.reader(self.catalog.decode().split('\n'))
+        for row in rd:
+            if len(row) == 0:
+                continue
+            nrow = [i.strip() for i in row]
+            sdate = datetime.datetime(*map(int, re.findall('\d+', nrow[4])))
+            edate = datetime.datetime(*map(int, re.findall('\d+', nrow[5])))
+            ndict[(nrow[0], int(nrow[1]), nrow[2], nrow[3], interval2codemap[nrow[6]])] = (sdate, edate)
+        assert_equal(out, ndict)
 
     def test_catalog_cli(self):
         args = 'hspfbintoolbox catalog tests/6b_np1.hbn'

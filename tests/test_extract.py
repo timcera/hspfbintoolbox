@@ -14,7 +14,7 @@ from pandas.util.testing import TestCase
 from pandas.util.testing import assert_frame_equal
 import sys
 try:
-    from cStringIO import StringIO
+    from StringIO import StringIO
 except:
     from io import StringIO
 
@@ -87,9 +87,15 @@ class TestDescribe(TestCase):
 1999-01-01,1.40244
 2000-01-01,0.0191165
 '''
+        self.extract_api = StringIO(self.extract.decode())
 
     def test_extract_cli(self):
         args = 'hspfbintoolbox extract tests/6b_np1.hbn yearly ,905,,AGWS'
         args = shlex.split(args)
         out = subprocess.Popen(args  ,stdout=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0]
         self.assertEqual(out, self.extract)
+
+    def test_extract_sub(self):
+        import io
+        out = hspfbintoolbox.extract('tests/6b_np1.hbn', 'yearly', ',905,,AGWS')
+        assert_frame_equal(out, pd.DataFrame.from_csv(self.extract_api))
