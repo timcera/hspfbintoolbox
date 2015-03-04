@@ -39,7 +39,8 @@ def capture(func, *args, **kwds):
 
 class TestDescribe(TestCase):
     def setUp(self):
-        self.catalog = b'''IMPLND,11,IWATER,IMPEV  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
+        self.catalog = b'''\
+IMPLND,11,IWATER,IMPEV  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
 IMPLND,11,IWATER,PET  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
 IMPLND,11,IWATER,RETS  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
 IMPLND,11,IWATER,SUPY  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
@@ -2214,12 +2215,18 @@ PERLND,905,PWATER,UZS  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
             nrow = [i.strip() for i in row]
             sdate = datetime.datetime(*map(int, re.findall('\d+', nrow[4])))
             edate = datetime.datetime(*map(int, re.findall('\d+', nrow[5])))
-            ndict[(nrow[0], int(nrow[1]), nrow[2], nrow[3], interval2codemap[nrow[6]])] = (sdate, edate)
+            ndict[(nrow[0],
+                  int(nrow[1]),
+                  nrow[2],
+                  nrow[3],
+                  interval2codemap[nrow[6]])] = (sdate, edate)
         assert_equal(out, ndict)
 
     def test_catalog_cli(self):
         args = 'hspfbintoolbox catalog tests/6b_np1.hbn'
         args = shlex.split(args)
-        out = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0]
+        out = subprocess.Popen(args,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE).communicate()[0]
         self.assertEqual(out, self.catalog)
 

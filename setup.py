@@ -24,7 +24,8 @@ install_requires = [
 
 setup(name='hspfbintoolbox',
     version=version,
-    description="Reads Hydrological Simulation Program - FORTRAN binary files and prints to screen.",
+    description=("Reads Hydrological Simulation Program - "
+                 "FORTRAN binary files and prints to screen."),
     long_description=README,
     classifiers=[
       # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers

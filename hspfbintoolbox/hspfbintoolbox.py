@@ -333,17 +333,12 @@ def extract(hbnfilename, interval, *labels, **kwds):
         skeys.sort(key=lambda tup: tup[1:])
     else:
         skeys.sort()
-    for label in skeys:
-        order, ot, lu, sec, vn, lev = label
 
-        tmpres = pd.DataFrame(data[label],
-                              columns=['{0}_{1}_{2}_{3}'.format(
-                                  ot, lu, vn, lev)],
-                              index=index)
-        try:
-            result = result.join(tmpres)
-        except NameError:
-            result = tmpres
+    result = pd.concat([pd.DataFrame(data[i], index=index) for i in skeys],
+                       axis=1)
+
+    columns = ['{0}_{1}_{2}_{3}'.format(i[1], i[2], i[4], i[5]) for i in skeys]
+    result.columns = columns
 
     if time_stamp == 'begin':
         result = tsutils.asbestfreq(result)[0]
@@ -396,31 +391,17 @@ def dump(hbnfilename, time_stamp='begin'):
     skeys = list(data.keys())
     skeys.sort()
 
-    for label in skeys:
-        order, ot, lu, sec, vn, lev = label
-        nindex = list(index[lev].keys())
-        nindex.sort()
+    result = pd.concat([pd.DataFrame(data[i], index=index) for i in skeys],
+                       axis=1)
 
-        tmpres = pd.DataFrame(data[label],
-                              columns=['{0}_{1}_{2}_{3}'.format(
-                                  ot, lu, vn, lev)],
-                              index=nindex)
-        try:
-            result = result.join(tmpres)
-        except NameError:
-            result = tmpres
+    columns = ['{0}_{1}_{2}_{3}'.format(i[1], i[2], i[4], i[5]) for i in skeys]
+    result.columns = columns
 
     if time_stamp == 'begin':
         result = tsutils.asbestfreq(result)[0]
         result = result.tshift(-1)
 
-    try:
-        fresult = fresult.join(result)
-    except NameError:
-        fresult = result
-    del result
-
-    return tsutils.printiso(fresult)
+    return tsutils.printiso(result)
 
 
 @baker.command

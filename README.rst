@@ -18,12 +18,12 @@
     :alt: hspfbintoolbox license
     :target: https://pypi.python.org/pypi/hspfbintoolbox/
 
-Documentation for `hspfbintoolbox`
-==================================
-The `hspfbintoolbox` is a Python script and library of functions to read
+Documentation for hspfbintoolbox
+================================
+The ``hspfbintoolbox`` is a Python script and library of functions to read
 Hydrological Simulation Program Fortran (HSPF) binary files and print to
 screen.  The time series can then be redirected to file, or piped to other
-command line programs like `tstoolbox`.
+command line programs like ``tstoolbox``.
 
 Requirements
 ------------

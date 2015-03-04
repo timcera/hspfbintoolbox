@@ -21,9 +21,9 @@ except:
 import pandas as pd
 from hspfbintoolbox import hspfbintoolbox
 
-def capture(func  ,*args, **kwds):
+def capture(func, *args, **kwds):
     sys.stdout = StringIO()      # capture output
-    out = func(*args  ,**kwds)
+    out = func(*args, **kwds)
     out = sys.stdout.getvalue()  # release output
     try:
         out = bytes(out  ,'utf-8')
@@ -92,10 +92,11 @@ class TestDescribe(TestCase):
     def test_extract_cli(self):
         args = 'hspfbintoolbox extract tests/6b_np1.hbn yearly ,905,,AGWS'
         args = shlex.split(args)
-        out = subprocess.Popen(args  ,stdout=subprocess.PIPE, stdin=subprocess.PIPE).communicate()[0]
+        out = subprocess.Popen(args,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE).communicate()[0]
         self.assertEqual(out, self.extract)
 
     def test_extract_sub(self):
-        import io
         out = hspfbintoolbox.extract('tests/6b_np1.hbn', 'yearly', ',905,,AGWS')
         assert_frame_equal(out, pd.DataFrame.from_csv(self.extract_api))
