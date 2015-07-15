@@ -334,14 +334,14 @@ def extract(hbnfilename, interval, *labels, **kwds):
     else:
         skeys.sort()
 
-    result = pd.concat([pd.DataFrame(data[i], index=index) for i in skeys],
-                       axis=1)
+    result = pd.concat([pd.Series(data[i], index=index) for i in skeys],
+                       axis=1, join_axes=[pd.Index(index)])
 
     columns = ['{0}_{1}_{2}_{3}'.format(i[1], i[2], i[4], i[5]) for i in skeys]
     result.columns = columns
 
     if time_stamp == 'begin':
-        result = tsutils.asbestfreq(result)[0]
+        result = tsutils.asbestfreq(result)
         result = result.tshift(-1)
 
     return tsutils.printiso(result)
@@ -391,14 +391,14 @@ def dump(hbnfilename, time_stamp='begin'):
     skeys = list(data.keys())
     skeys.sort()
 
-    result = pd.concat([pd.DataFrame(data[i], index=index) for i in skeys],
-                       axis=1)
+    result = pd.concat([pd.Series(data[i], index=index) for i in skeys],
+                       axis=1, join_axes=[pd.Index(index)])
 
     columns = ['{0}_{1}_{2}_{3}'.format(i[1], i[2], i[4], i[5]) for i in skeys]
     result.columns = columns
 
     if time_stamp == 'begin':
-        result = tsutils.asbestfreq(result)[0]
+        result = tsutils.asbestfreq(result)
         result = result.tshift(-1)
 
     return tsutils.printiso(result)
