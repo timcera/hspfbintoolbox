@@ -6,15 +6,15 @@
     :target: https://coveralls.io/r/timcera/hspfbintoolbox?branch=master
     :height: 20
 
-.. image:: https://pypip.in/v/hspfbintoolbox/badge.png?style=flat
+.. image:: https://img.shields.io/pypi/v/hspfbintoolbox.svg
     :alt: Latest release
     :target: https://pypi.python.org/pypi/hspfbintoolbox
 
-.. image:: https://pypip.in/d/hspfbintoolbox/badge.png?style=flat
+.. image:: https://img.shields.io/pypi/dm/hspfbintoolbox.svg
     :alt: PyPI downloads count
     :target: https://pypi.python.org/pypi/hspfbintoolbox
 
-.. image:: https://pypip.in/license/hspfbintoolbox/badge.png?style=flat
+.. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg
     :alt: hspfbintoolbox license
     :target: https://pypi.python.org/pypi/hspfbintoolbox/
 
@@ -31,7 +31,7 @@ Requirements
 * pandas - on Windows this is part of the Python(x,y), Enthought, or
   Anaconda distributions
 
-* baker - command line parser
+* mando - command line parser
 
 * tstoolbox - utilities to process time-series
 

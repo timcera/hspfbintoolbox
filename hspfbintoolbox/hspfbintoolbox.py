@@ -10,7 +10,7 @@ import os
 import sys
 import struct
 
-import baker
+import mando
 import pandas as pd
 import six
 
@@ -246,7 +246,7 @@ def _get_data(binfilename,
     return ndates, collect_dict
 
 
-@baker.command
+@mando.command
 def extract(hbnfilename, interval, *labels, **kwds):
     '''
     Prints out data to the screen from a HSPF binary output file.
@@ -347,7 +347,7 @@ def extract(hbnfilename, interval, *labels, **kwds):
     return tsutils.printiso(result)
 
 
-@baker.command
+@mando.command
 def catalog(hbnfilename):
     '''
     Prints out a catalog of data sets in the binary file.
@@ -368,7 +368,7 @@ def catalog(hbnfilename):
               (code2intervalmap[cat[-1]],))))
 
 
-@baker.command
+@mando.command
 def dump(hbnfilename, time_stamp='begin'):
     '''
     Prints out ALL data from a HSPF binary output file.
@@ -404,7 +404,7 @@ def dump(hbnfilename, time_stamp='begin'):
     return tsutils.printiso(result)
 
 
-@baker.command
+@mando.command
 def time_series(hbnfilename, interval, *labels, **kwds):
     ''' DEPRECATED: Use 'extract' instead.
     '''
@@ -414,4 +414,4 @@ def time_series(hbnfilename, interval, *labels, **kwds):
 def main():
     if not os.path.exists('debug_hspfbintoolbox'):
         sys.tracebacklimit = 0
-    baker.run()
+    mando.main()
