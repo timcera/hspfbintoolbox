@@ -415,3 +415,8 @@ def main():
     if not os.path.exists('debug_hspfbintoolbox'):
         sys.tracebacklimit = 0
     mando.main()
+
+
+if __name__ == '__main__':
+    main()
+
