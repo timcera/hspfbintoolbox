@@ -17,7 +17,7 @@ install_requires = [
     # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
     'mando',
     'pandas >= 0.9.0',
-    'tstoolbox >= 0.9.7',
+    'tstoolbox >= 1.12.12.9',
 ]
 
 

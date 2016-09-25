@@ -404,6 +404,13 @@ def dump(hbnfilename, time_stamp='begin'):
     return tsutils.printiso(result)
 
 
+@mando.command()
+def about():
+    """Display version number and system information.
+    """
+    tsutils.about(__name__)
+
+
 @mando.command
 def time_series(hbnfilename, interval, *labels, **kwds):
     ''' DEPRECATED: Use 'extract' instead.
