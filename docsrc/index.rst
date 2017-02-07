@@ -1,7 +1,9 @@
 .. include:: ../BADGES.rst
 
-Documentation for hspfbintoolbox
-================================
+.. _hspfbintoolbox_documentation:   
+
+hspfbintoolbox
+==============
 
 This is the home page for `hspfbintoolbox`.  The `hspfbintoolbox` is a
 command line program and Python library functions to dump data out of
@@ -13,10 +15,11 @@ Table of Contents
    :maxdepth: 2
 
    readme
+   function_summary
    contributing
    authors
    license
 
-Related Work
-------------
+Other Projects
+--------------
 http://timcera.bitbucket.org
