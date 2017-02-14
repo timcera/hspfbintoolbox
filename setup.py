@@ -15,8 +15,6 @@ install_requires = [
     # List your project dependencies here.
     # For more details, see:
     # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
-    'mando',
-    'pandas >= 0.9.0',
     'tstoolbox >= 1.12.12.9',
 ]
 

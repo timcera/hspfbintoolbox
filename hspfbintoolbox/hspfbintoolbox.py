@@ -12,7 +12,6 @@ import struct
 
 import mando
 import pandas as pd
-import six
 
 from tstoolbox import tsutils
 
@@ -71,8 +70,7 @@ def _get_data(binfilename,
               'RCHRES': ['HYDR', 'CONS', 'HTRCH', 'SEDTRN',
                          'GQUAL', 'OXRX', 'NUTRX', 'PLANK',
                          'PHCARB', 'INFLOW', 'OFLOW', 'ROFLOW', ''],
-              '': ['']
-             }
+              '': ['']}
 
     collect_dict = {}
     lablist = []
@@ -142,38 +140,28 @@ def _get_data(binfilename,
         labeltest = {}
         vnames = {}
         ndates = {}
-        tindex = 0
-        optype_list = [six.b('PERLND'), six.b('IMPLND'), six.b('RCHRES')]
+        rectype = 0
+        fl.read(1)
         while 1:
-            fl.seek(tindex)
-            initial_search = fl.read(25)
-            search_index = [initial_search.find(i) for i in optype_list]
-            maxsindex = max(search_index)
-            search_index_list = [maxsindex
-                                 if i == -1
-                                 else i
-                                 for i in search_index]
-            search_index = min(search_index_list)
-            if search_index == -1:
-                break
-            tindex = tindex + search_index - 4
-            fl.seek(tindex)
-            rectype, optype, lue, section = struct.unpack('I8sI8s',
-                                                          fl.read(24))
-            optype = optype.strip()
-            section = section.strip()
-            lue = int(lue)
-
-            if rectype == 0:
-                fl.seek(tindex - 4)
+            try:
                 reclen1, reclen2, reclen3, reclen = struct.unpack('4B',
                                                                   fl.read(4))
-                reclen1 = int(reclen1/4)
-                reclen2 = reclen2*64 + reclen1
-                reclen3 = reclen3*16384 + reclen2
-                reclen = reclen*4194304 + reclen3
-                fl.seek(tindex + 24)
-                slen = 0
+            except struct.error:
+                break
+            reclen1 = int(reclen1/4)
+            reclen2 = reclen2*64 + reclen1
+            reclen3 = reclen3*16384 + reclen2
+            reclen = reclen*4194304 + reclen3
+            slen = 0
+            rectype, optype, lue, section = struct.unpack('I8sI8s',
+                                                          fl.read(24))
+
+            rectype = int(rectype)
+            lue = int(lue)
+            optype = optype.strip()
+            section = section.strip()
+
+            if rectype == 0:
                 while slen < reclen - 28:
                     length = struct.unpack('I', fl.read(4))[0]
                     slen = slen + length + 4
@@ -185,7 +173,7 @@ def _get_data(binfilename,
                 # Data record
                 numvals = len(vnames[(lue, section)])
 
-                (unit_flag,
+                (_,
                  level,
                  year,
                  month,
@@ -220,8 +208,7 @@ def _get_data(binfilename,
                         mindate = min(mindate, ndate)
                         maxdate = max(maxdate, ndate)
                         collect_dict[tmpkey[1:]] = (mindate, maxdate)
-            tindex = fl.tell()
-
+            fl.read(2)
 
     if not collect_dict:
         raise ValueError('''
@@ -426,4 +413,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
