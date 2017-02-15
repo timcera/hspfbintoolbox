@@ -10,10 +10,6 @@
     :alt: Latest release
     :target: https://pypi.python.org/pypi/hspfbintoolbox
 
-.. image:: https://img.shields.io/pypi/dm/hspfbintoolbox.svg
-    :alt: PyPI downloads count
-    :target: https://pypi.python.org/pypi/hspfbintoolbox
-
 .. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg
     :alt: hspfbintoolbox license
     :target: https://pypi.python.org/pypi/hspfbintoolbox/
