@@ -26,7 +26,7 @@ interval2codemap = {'yearly': 5,
                     'daily': 3,
                     'bivl': 2}
 
-code2freqmap = {5: 'Y',
+code2freqmap = {5: 'A',
                 4: 'M',
                 3: 'D',
                 2: None}
@@ -207,7 +207,11 @@ def _get_data(binfilename,
                     else:
                         mindate = min(mindate, ndate)
                         maxdate = max(maxdate, ndate)
-                        collect_dict[tmpkey[1:]] = (mindate, maxdate)
+                        pdoffset = code2freqmap[level]
+                        collect_dict[tmpkey[1:]] = (pd.Period(mindate,
+                                                              freq=pdoffset),
+                                                    pd.Period(maxdate,
+                                                              freq=pdoffset))
             fl.read(2)
 
     if not collect_dict:
@@ -335,7 +339,7 @@ def extract(hbnfilename, interval, *labels, **kwds):
 
 
 @mando.command
-def catalog(hbnfilename):
+def catalog(hbnfilename, tablefmt='simple', header=''):
     '''
     Prints out a catalog of data sets in the binary file.
 
@@ -343,16 +347,29 @@ def catalog(hbnfilename):
     be used with the 'extract' command.
 
     :param hbnfilename: The HSPF binary output file
+    :param tablefmt: The table format.  Can be one of 'cvs', 'tvs',
+        'plain', 'simple', 'grid', 'pipe', 'orgtbl', 'rst', 'mediawiki',
+        'latex', 'latex_raw' and 'latex_booktabs'.  Default is 'simple'.
+    :param header: Whether to print the header or not.
     '''
+    # PERLND  905  PWATER  SURS  5  1951  2001  yearly
+    # PERLND  905  PWATER  TAET  5  1951  2001  yearly
     catlog = _get_data(hbnfilename, None, [',,,'], catalog_only=True)[1]
     if tsutils.test_cli() is False:
         return catlog
     catkeys = list(catlog.keys())
     catkeys.sort()
+    header = ''
+    if header is None:
+        header = ['LUE', 'LC', 'GROUP', 'VAR', 'TC', 'START', 'END', 'TC']
+    result = []
     for cat in catkeys:
-        print('{0},{1},{2},{3}  ,{5}, {6}, {7}'.format(
-            *(cat + catlog[cat] +
-              (code2intervalmap[cat[-1]],))))
+        result.append(cat +
+                      catlog[cat] +
+                      (code2intervalmap[cat[-1]],))
+    return tsutils.printiso(result,
+                            tablefmt=tablefmt,
+                            headers=header)
 
 
 @mando.command
