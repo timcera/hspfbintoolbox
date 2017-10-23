@@ -11,6 +11,7 @@ import sys
 import struct
 
 import mando
+from mando.rst_text_formatter import RSTHelpFormatter
 import pandas as pd
 
 from tstoolbox import tsutils
@@ -237,19 +238,22 @@ def _get_data(binfilename,
     return ndates, collect_dict
 
 
-@mando.command
+@mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
 def extract(hbnfilename, interval, *labels, **kwds):
-    '''
-    Prints out data to the screen from a HSPF binary output file.
+    '''Prints out data to the screen from a HSPF binary output file.
 
-    :param hbnfilename: The HSPF binary output file
-    :param interval: One of 'yearly', 'monthly', 'daily', or 'BIVL'.
-        The 'BIVL' option is a sub-daily interval defined in the UCI file.
-        Typically 'BIVL' is used for hourly output, but can be set to any
-        value that evenly divides into a day.
-    :param labels: The remaining arguments uniquely identify a time-series
-        in the binary file.  The format is
-        'OPERATIONTYPE,ID,SECTION,VARIABLE'.
+    Parameters
+    ----------
+    hbnfilename
+        The HSPF binary output file
+    interval
+        One of 'yearly', 'monthly', 'daily', or 'BIVL'.  The 'BIVL'
+        option is a sub-daily interval defined in the UCI file.
+        Typically 'BIVL' is used for hourly output, but can be set to
+        any value that evenly divides into a day.
+    labels
+        The remaining arguments uniquely identify a time-series in the
+        binary file.  The format is 'OPERATIONTYPE,ID,SECTION,VARIABLE'.
 
         For example: 'PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS'
 
@@ -264,13 +268,15 @@ def extract(hbnfilename, interval, *labels, **kwds):
         'PERLND,,,TAET'
 
         Note that there are spaces ONLY between label specifications.
-    :param time_stamp: For the interval defines the location of the time
-        stamp. If set to 'begin', the time stamp is at the begining of the
-        interval.  If set to any other string, the reported time stamp will
-        represent the end of the interval.  Default is 'begin'.  Place after
+    time_stamp
+        For the interval defines the location of the time stamp. If set
+        to 'begin', the time stamp is at the begining of the interval.
+        If set to any other string, the reported time stamp will
+        represent the end of the interval.  Default is 'begin'.  Place
+        after ALL labels.
+    sorted
+        Should ALL columns be sorted?  Default is False.  Place after
         ALL labels.
-    :param sorted: Should ALL columns be sorted?
-        Default is False.  Place after ALL labels.
     '''
     try:
         time_stamp = kwds.pop('time_stamp')
@@ -338,19 +344,22 @@ def extract(hbnfilename, interval, *labels, **kwds):
     return tsutils.printiso(result)
 
 
-@mando.command
-def catalog(hbnfilename, tablefmt='simple', header=''):
+@mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
+@tsutils.doc(tsutils.docstrings)
+def catalog(hbnfilename, tablefmt='simple', header='default'):
     '''
     Prints out a catalog of data sets in the binary file.
 
-    The first part of each line up to the first space is the label that can
-    be used with the 'extract' command.
+    The first four items on the line can be used with the 'extract'
+    command.
 
-    :param hbnfilename: The HSPF binary output file
-    :param tablefmt: The table format.  Can be one of 'cvs', 'tvs',
-        'plain', 'simple', 'grid', 'pipe', 'orgtbl', 'rst', 'mediawiki',
-        'latex', 'latex_raw' and 'latex_booktabs'.  Default is 'simple'.
-    :param header: Whether to print the header or not.
+    Parameters
+    ----------
+    hbnfilename
+        The HSPF binary output file.
+    {tablefmt}
+    {header}
+
     '''
     # PERLND  905  PWATER  SURS  5  1951  2001  yearly
     # PERLND  905  PWATER  TAET  5  1951  2001  yearly
@@ -359,8 +368,7 @@ def catalog(hbnfilename, tablefmt='simple', header=''):
         return catlog
     catkeys = list(catlog.keys())
     catkeys.sort()
-    header = ''
-    if header is None:
+    if header == "default":
         header = ['LUE', 'LC', 'GROUP', 'VAR', 'TC', 'START', 'END', 'TC']
     result = []
     for cat in catkeys:
@@ -372,16 +380,21 @@ def catalog(hbnfilename, tablefmt='simple', header=''):
                             headers=header)
 
 
-@mando.command
+@mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
 def dump(hbnfilename, time_stamp='begin'):
     '''
     Prints out ALL data from a HSPF binary output file.
 
-    :param hbnfilename: The HSPF binary output file
-    :param time_stamp: For the interval defines the location of the time
-        stamp. If set to 'begin', the time stamp is at the begining of the
-        interval.  If set to any other string, the reported time stamp will
-        represent the end of the interval.  Default is 'begin'.
+    Parameters
+    ----------
+    hbnfilename
+        The HSPF binary output file
+    time_stamp
+        For the interval defines the location of the time stamp. If set
+        to 'begin', the time stamp is at the begining of the interval.
+        If set to any other string, the reported time stamp will
+        represent the end of the interval.  Default is 'begin'.Z
+
     '''
     if time_stamp not in ['begin', 'end']:
         raise ValueError('''
