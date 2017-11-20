@@ -92,7 +92,9 @@ def _get_data(binfilename,
 *
 '''.format(label))
 
-        if words[1]:
+        words = [None if i is '' else i for i in words]
+
+        if words[1] is not None:
             words[1] = words[1].upper()
             if words[1] not in testem.keys():
                 raise ValueError('''
@@ -102,7 +104,7 @@ def _get_data(binfilename,
 *
 '''.format(words[1]))
 
-        if words[2]:
+        if words[2] is not None:
             try:
                 words[2] = int(words[2])
                 if words[2] < 1 or words[2] > 999:
@@ -115,7 +117,7 @@ def _get_data(binfilename,
 *
 '''.format(words[2]))
 
-        if words[3]:
+        if words[3] is not None:
             words[3] = words[3].upper()
             if words[3] not in testem[words[1]]:
                 raise ValueError('''
@@ -125,10 +127,6 @@ def _get_data(binfilename,
 *   instead you gave {2}.
 *
 '''.format(words[1], testem[words[1]][:-1], words[3]))
-
-        for index in list(range(len(words))):
-            if words[index] is '':
-                words[index] = None
 
         words.append(intervalcode)
         lablist.append(words)
