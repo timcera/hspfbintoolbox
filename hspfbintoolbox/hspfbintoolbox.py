@@ -267,14 +267,16 @@ def extract(hbnfilename, interval, *labels, **kwds):
 
         Note that there are spaces ONLY between label specifications.
     time_stamp
-        For the interval defines the location of the time stamp. If set
-        to 'begin', the time stamp is at the begining of the interval.
-        If set to any other string, the reported time stamp will
-        represent the end of the interval.  Default is 'begin'.  Place
-        after ALL labels.
+        [optional, default is 'begin']
+
+        For the interval defines the location of the time stamp. If set to
+        'begin', the time stamp is at the begining of the interval.  If set to
+        any other string, the reported time stamp will represent the end of the
+        interval.  Place after ALL labels.
     sorted
-        Should ALL columns be sorted?  Default is False.  Place after
-        ALL labels.
+        [optional, default is False]
+
+        Should ALL columns be sorted?  Place after ALL labels.
     '''
     try:
         time_stamp = kwds.pop('time_stamp')
@@ -388,6 +390,8 @@ def dump(hbnfilename, time_stamp='begin'):
     hbnfilename
         The HSPF binary output file
     time_stamp
+        [optional, default is 'begin']
+
         For the interval defines the location of the time stamp. If set
         to 'begin', the time stamp is at the begining of the interval.
         If set to any other string, the reported time stamp will
