@@ -341,6 +341,8 @@ def extract(hbnfilename, interval, *labels, **kwds):
         result = tsutils.asbestfreq(result)
         result = result.tshift(-1)
 
+    result.index.name = 'Datetime'
+
     return tsutils.printiso(result)
 
 

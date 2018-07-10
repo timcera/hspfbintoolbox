@@ -101,3 +101,4 @@ class TestDescribe(TestCase):
     def test_extract_sub(self):
         out = hspfbintoolbox.extract('tests/6b_np1.hbn', 'yearly', ',905,,AGWS')
         assert_frame_equal(out, pd.DataFrame.from_csv(self.extract_api))
+
