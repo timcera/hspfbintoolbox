@@ -17,38 +17,33 @@ pkgs="\
      "
 
 # pandas no longer supports 2.6
-envs=(2.7 3.3 3.4 3.5)
+envs=(~/python_ves/python-2.7.13)
 
 for env in ${envs[@]}; do
     echo "${env}"
 
-    pew in python${env} << EOT
-    pip install --upgrade ${pkgs}
-    pip install --no-deps --upgrade ../mando/
+    source "${env}"/bin/activate
+    pip install --upgrade pip
+    pip install wheel
+    pip install --upgrade --only-binary pandas,scipy ${pkgs}
     pip uninstall -y ${program}
     rm -rf build
-    pip install --upgrade --no-deps ../${program}/
+    python setup.py develop
 
     nosetests \
-        --with-doctest \
         --with-coverage \
         --cover-tests \
         --cover-package=${program} \
         --cover-branches \
-        --cover-erase
-    exit
-EOT
+        --cover-erase \
+        -s
+    deactivate
 done
 
-pew in python3.4 << EOTT
+source "${env}"/bin/activate
 coverage erase
-coverage run `which nosetests` --with-doctest
+coverage run `which nosetests`
 coverage report --include="${program}/*" --omit="tests/*"
 coverage html --include="${program}/*" --omit="tests/*"
 flake8 ${program}/__init__.py ${program}/${program}.py --exit-zero
-
-cd docsrc
-make clean
-make html
-exit
-EOTT
+deactivate

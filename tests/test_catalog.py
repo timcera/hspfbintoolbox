@@ -10,8 +10,8 @@ Tests for `hspfbintoolbox` module.
 
 import shlex
 import subprocess
-from pandas.util.testing import TestCase
-from pandas.util.testing import assert_frame_equal, assert_equal
+from unittest import TestCase
+from pandas.util.testing import assert_frame_equal
 import sys
 try:
     from cStringIO import StringIO
@@ -2220,7 +2220,7 @@ PERLND,905,PWATER,UZS  ,1951-01-01 00:00:00, 2001-01-01 00:00:00, yearly
                   nrow[2],
                   nrow[3],
                   interval2codemap[nrow[6]])] = (sdate, edate)
-        assert_equal(out, ndict)
+        self.assertEqual(out, ndict)
 
     def test_catalog_cli(self):
         args = 'hspfbintoolbox catalog tests/6b_np1.hbn'
