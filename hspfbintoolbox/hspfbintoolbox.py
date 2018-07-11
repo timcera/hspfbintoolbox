@@ -33,6 +33,12 @@ code2freqmap = {5: 'A',
                 2: None}
 
 
+_LOCAL_DOCSTRINGS = tsutils.docstrings
+_LOCAL_DOCSTRINGS['hbnfilename'] = r"""hbnfilename
+        The HSPF binary output file.  This file must have been created from
+        a completed model run."""
+
+
 def tupleMatch(a, b):
     '''Part of partial ordered matching.
     See http://stackoverflow.com/a/4559604
@@ -237,13 +243,13 @@ def _get_data(binfilename,
 
 
 @mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
+@tsutils.doc(_LOCAL_DOCSTRINGS)
 def extract(hbnfilename, interval, *labels, **kwds):
     '''Prints out data to the screen from a HSPF binary output file.
 
     Parameters
     ----------
-    hbnfilename
-        The HSPF binary output file
+    {hbnfilename}
     interval
         One of 'yearly', 'monthly', 'daily', or 'BIVL'.  The 'BIVL'
         option is a sub-daily interval defined in the UCI file.
@@ -347,18 +353,17 @@ def extract(hbnfilename, interval, *labels, **kwds):
 
 
 @mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
-@tsutils.doc(tsutils.docstrings)
+@tsutils.doc(_LOCAL_DOCSTRINGS)
 def catalog(hbnfilename, tablefmt='simple', header='default'):
     '''
     Prints out a catalog of data sets in the binary file.
 
-    The first four items on the line can be used with the 'extract'
-    command.
+    The first four items of each line can be used as labels with the 'extract'
+    command to identify time-series in the binary file.
 
     Parameters
     ----------
-    hbnfilename
-        The HSPF binary output file.
+    {hbnfilename}
     {tablefmt}
     {header}
 
@@ -383,14 +388,14 @@ def catalog(hbnfilename, tablefmt='simple', header='default'):
 
 
 @mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
+@tsutils.doc(_LOCAL_DOCSTRINGS)
 def dump(hbnfilename, time_stamp='begin'):
     '''
     Prints out ALL data from a HSPF binary output file.
 
     Parameters
     ----------
-    hbnfilename
-        The HSPF binary output file
+    {hbnfilename}
     time_stamp
         [optional, default is 'begin']
 
