@@ -47,8 +47,8 @@ def read_unicode_csv(filename, delimiter=',', quotechar='"',
         # Set newline arg to ''
         # (see https://docs.python.org/3/library/csv.html)
         # Next, get the csv reader, with unicode delimiter and quotechar
-        f = filename.encode(encoding)
-        csv_reader = csv.reader(f, delimiter=delimiter,
+        csv_reader = csv.reader(filename,
+                                delimiter=delimiter,
                                 quotechar=quotechar,
                                 quoting=quoting,
                                 lineterminator=lineterminator)
@@ -59,8 +59,8 @@ def read_unicode_csv(filename, delimiter=',', quotechar='"',
     else:
         # Next, get the csv reader, passing delimiter and quotechar as
         # bytestrings rather than unicode
-        f = filename
-        csv_reader = csv.reader(f, delimiter=delimiter.encode(encoding),
+        csv_reader = csv.reader(filename,
+                                delimiter=delimiter.encode(encoding),
                                 quotechar=quotechar.encode(encoding),
                                 quoting=quoting,
                                 lineterminator=lineterminator)
