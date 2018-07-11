@@ -8,6 +8,7 @@ catalog
 Tests for `hspfbintoolbox` module.
 """
 
+import csv
 import shlex
 import subprocess
 from unittest import TestCase
@@ -35,6 +36,37 @@ def capture(func, *args, **kwds):
     except:
         pass
     return out
+
+
+def read_unicode_csv(filename, delimiter=',', quotechar='"',
+                     quoting=csv.QUOTE_MINIMAL, lineterminator='\n',
+                     encoding='utf-8'):
+    # Python 3 version
+    if sys.version_info[0] >= 3:
+        # Open the file in text mode with given encoding
+        # Set newline arg to ''
+        # (see https://docs.python.org/3/library/csv.html)
+        # Next, get the csv reader, with unicode delimiter and quotechar
+        f = filename.encode(encoding)
+        csv_reader = csv.reader(f, delimiter=delimiter,
+                                quotechar=quotechar,
+                                quoting=quoting,
+                                lineterminator=lineterminator)
+        # Now, iterate over the (already decoded) csv_reader generator
+        for row in csv_reader:
+            yield row
+    # Python 2 version
+    else:
+        # Next, get the csv reader, passing delimiter and quotechar as
+        # bytestrings rather than unicode
+        f = filename
+        csv_reader = csv.reader(f, delimiter=delimiter.encode(encoding),
+                                quotechar=quotechar.encode(encoding),
+                                quoting=quoting,
+                                lineterminator=lineterminator)
+        # Iterate over the file and decode each string into unicode
+        for row in csv_reader:
+            yield [cell.decode(encoding) for cell in row]
 
 
 class TestDescribe(TestCase):
@@ -2202,20 +2234,17 @@ PERLND, 905,PWATER ,UZET ,   5,1951   ,2001 ,yearly
 PERLND, 905,PWATER ,UZI  ,   5,1951   ,2001 ,yearly
 PERLND, 905,PWATER ,UZS  ,   5,1951   ,2001 ,yearly
 '''
-        import csv
-        import datetime
-        import re
         ndict = []
-        rd = csv.reader(self.catalog.decode().split('\n'))
+        rd = read_unicode_csv(StringIO(self.catalog.decode()))
         next(rd)
         for row in rd:
             if len(row) == 0:
                 continue
             nrow = [i.strip() for i in row]
-            ndict.append((unicode(nrow[0]),
+            ndict.append((nrow[0],
                           int(nrow[1]),
-                          unicode(nrow[2]),
-                          unicode(nrow[3]),
+                          nrow[2],
+                          nrow[3],
                           interval2codemap[nrow[7]]))
         self.ncatalog = sorted(ndict)
 
