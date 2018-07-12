@@ -33,10 +33,10 @@ code2freqmap = {5: 'A',
                 2: None}
 
 
-_LOCAL_DOCSTRINGS = tsutils.docstrings
-_LOCAL_DOCSTRINGS['hbnfilename'] = r"""hbnfilename
+_LOCAL_DOCSTRINGS = {'hbnfilename': r"""hbnfilename: str
         The HSPF binary output file.  This file must have been created from
         a completed model run."""
+                     }
 
 
 def tupleMatch(a, b):
@@ -241,20 +241,20 @@ def _get_data(binfilename,
 
     return ndates, collect_dict
 
-
 @mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
-@tsutils.doc(_LOCAL_DOCSTRINGS)
+@tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
 def extract(hbnfilename, interval, *labels, **kwds):
-    '''Prints out data to the screen from a HSPF binary output file.
+    r"""Prints out data to the screen from a HSPF binary output file.
 
     Parameters
     ----------
     {hbnfilename}
-    interval
-        One of 'yearly', 'monthly', 'daily', or 'BIVL'.  The 'BIVL'
-        option is a sub-daily interval defined in the UCI file.
-        Typically 'BIVL' is used for hourly output, but can be set to
-        any value that evenly divides into a day.
+    interval: str
+        One of 'yearly', 'monthly', 'daily', or 'BIVL'.  The 'BIVL' option is
+        a sub-daily interval defined in the UCI file.  Typically 'BIVL' is used
+        for hourly output, but can be set to any value that evenly divides into
+        a day.
+
     labels
         The remaining arguments uniquely identify a time-series in the
         binary file.  The format is 'OPERATIONTYPE,ID,SECTION,VARIABLE'.
@@ -272,18 +272,21 @@ def extract(hbnfilename, interval, *labels, **kwds):
         'PERLND,,,TAET'
 
         Note that there are spaces ONLY between label specifications.
-    time_stamp
+    kwds:
+        [optional]
+
+        Current the allowable keywords are 'time_stamp' and 'sorted'.
+        time_stamp
         [optional, default is 'begin']
 
         For the interval defines the location of the time stamp. If set to
-        'begin', the time stamp is at the begining of the interval.  If set to
+        'begin', the time stamp is at the beginning of the interval.  If set to
         any other string, the reported time stamp will represent the end of the
         interval.  Place after ALL labels.
-    sorted
+        sorted
         [optional, default is False]
 
-        Should ALL columns be sorted?  Place after ALL labels.
-    '''
+        Should ALL columns be sorted?  Place after ALL labels."""
     try:
         time_stamp = kwds.pop('time_stamp')
     except KeyError:
@@ -353,7 +356,7 @@ def extract(hbnfilename, interval, *labels, **kwds):
 
 
 @mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
-@tsutils.doc(_LOCAL_DOCSTRINGS)
+@tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
 def catalog(hbnfilename, tablefmt='simple', header='default'):
     '''
     Prints out a catalog of data sets in the binary file.
@@ -388,7 +391,7 @@ def catalog(hbnfilename, tablefmt='simple', header='default'):
 
 
 @mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
-@tsutils.doc(_LOCAL_DOCSTRINGS)
+@tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
 def dump(hbnfilename, time_stamp='begin'):
     '''
     Prints out ALL data from a HSPF binary output file.
