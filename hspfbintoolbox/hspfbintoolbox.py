@@ -77,6 +77,7 @@ def _get_data(binfilename,
               'RCHRES': ['HYDR', 'CONS', 'HTRCH', 'SEDTRN',
                          'GQUAL', 'OXRX', 'NUTRX', 'PLANK',
                          'PHCARB', 'INFLOW', 'OFLOW', 'ROFLOW', ''],
+              'BMPRAC': [''],
               '': ['']}
 
     collect_dict = {}
@@ -105,7 +106,7 @@ def _get_data(binfilename,
             if words[1] not in testem.keys():
                 raise ValueError('''
 *
-*   Operation type must be one of 'PERLND', 'IMPLND', or 'RCHRES',
+*   Operation type must be one of 'PERLND', 'IMPLND', 'RCHRES', or 'BMPRAC',
 *   or missing (to get all) instead of {0}.
 *
 '''.format(words[1]))
@@ -128,7 +129,7 @@ def _get_data(binfilename,
             if words[3] not in testem[words[1]]:
                 raise ValueError('''
 *
-*   The {0} operation type only allows the sections:
+*   The {0} operation type only allows the variable groups:
 *   {1},
 *   instead you gave {2}.
 *
@@ -257,7 +258,7 @@ def extract(hbnfilename, interval, *labels, **kwds):
 
     labels
         The remaining arguments uniquely identify a time-series in the
-        binary file.  The format is 'OPERATIONTYPE,ID,SECTION,VARIABLE'.
+        binary file.  The format is 'OPERATIONTYPE,ID,VARIABLE_GROUP,VARIABLE'.
 
         For example: 'PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS'
 
@@ -272,6 +273,28 @@ def extract(hbnfilename, interval, *labels, **kwds):
         'PERLND,,,TAET'
 
         Note that there are spaces ONLY between label specifications.
+
+        OPERATIONTYE can be PERLND, IMPLND, RCHRES, and BMPRAC.
+
+        ID is specified in the UCI file.
+
+        VARIABLE_GROUP depends on OPERATIONTYPE where::
+
+            if OPERATIONTYPE is PERLND then VARIABLEGROUP can be one of
+                'ATEMP', 'SNOW', 'PWATER', 'SEDMNT', 'PSTEMP', 'PWTGAS',
+                'PQUAL', 'MSTLAY', 'PEST', 'NITR', 'PHOS', 'TRACER'
+
+            if OPERATIONTYPE is IMPLND then VARIABLEGROUP can be one of
+                'ATEMP', 'SNOW', 'IWATER', 'SOLIDS', 'IWTGAS', 'IQUAL'
+
+            if OPERATIONTYPE is RCHRES then VARIABLEGROUP can be one of
+                'HYDR', 'CONS', 'HTRCH', 'SEDTRN', 'GQUAL', 'OXRX', 'NUTRX',
+                'PLANK', 'PHCARB', 'INFLOW', 'OFLOW', 'ROFLOW'
+
+            if OPERATIONTYPE is BMPRAC then there is no VARIABLEGROUP and you
+            have to leave VARIABLEGROUP as a wild card.  For example,
+            'BMPRAC,875,,RMVOL'.
+
     kwds:
         [optional]
 
