@@ -2,7 +2,8 @@ from setuptools import setup
 import sys, os
 
 if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist upload')
+    os.system('python setup.py sdist')
+    os.system('twine upload dist/hspfbintoolbox-{0}*'.format(version))
     sys.exit()
 
 here = os.path.abspath(os.path.dirname(__file__))
