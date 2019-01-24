@@ -13,3 +13,7 @@
 .. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg
     :alt: hspfbintoolbox license
     :target: https://pypi.python.org/pypi/hspfbintoolbox/
+
+.. image:: http://img.shields.io/pypi/dd/hspfbintoolbox.svg
+    :alt: hspfbintoolbox downloads
+    :target: https://pypi.python.org/pypi/hspfbintoolbox/
