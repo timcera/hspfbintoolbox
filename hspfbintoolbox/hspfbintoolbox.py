@@ -242,9 +242,10 @@ def _get_data(binfilename,
 
     return ndates, collect_dict
 
-@mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
+
+@mando.command('extract', formatter_class=RSTHelpFormatter, doctype='numpy')
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
-def extract(hbnfilename, interval, *labels, **kwds):
+def extract_cli(hbnfilename, interval, *labels, **kwds):
     r"""Prints out data to the screen from a HSPF binary output file.
 
     Parameters
@@ -310,6 +311,11 @@ def extract(hbnfilename, interval, *labels, **kwds):
         [optional, default is False]
 
         Should ALL columns be sorted?  Place after ALL labels."""
+    tsutils._printiso(extract(hbnfilename, interval, *labels, **kwds))
+
+
+def extract(hbnfilename, interval, *labels, **kwds):
+    r"""Returns a DataFrame from a HSPF binary output file."""
     try:
         time_stamp = kwds.pop('time_stamp')
     except KeyError:
@@ -375,12 +381,12 @@ def extract(hbnfilename, interval, *labels, **kwds):
 
     result.index.name = 'Datetime'
 
-    return tsutils.printiso(result)
+    return result
 
 
-@mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
+@mando.command('catalog', formatter_class=RSTHelpFormatter, doctype='numpy')
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
-def catalog(hbnfilename, tablefmt='simple', header='default'):
+def catalog_cli(hbnfilename, tablefmt='simple', header='default'):
     '''
     Prints out a catalog of data sets in the binary file.
 
@@ -394,6 +400,17 @@ def catalog(hbnfilename, tablefmt='simple', header='default'):
     {header}
 
     '''
+    if header == "default":
+        header = ['LUE', 'LC', 'GROUP', 'VAR', 'TC', 'START', 'END', 'TC']
+    tsutils._printiso(catalog(hbnfilename),
+                      tablefmt=tablefmt,
+                      headers=header)
+
+
+def catalog(hbnfilename):
+    '''
+    Prints out a catalog of data sets in the binary file.
+    '''
     # PERLND  905  PWATER  SURS  5  1951  2001  yearly
     # PERLND  905  PWATER  TAET  5  1951  2001  yearly
     catlog = _get_data(hbnfilename, None, [',,,'], catalog_only=True)[1]
@@ -401,21 +418,17 @@ def catalog(hbnfilename, tablefmt='simple', header='default'):
         return catlog
     catkeys = list(catlog.keys())
     catkeys.sort()
-    if header == "default":
-        header = ['LUE', 'LC', 'GROUP', 'VAR', 'TC', 'START', 'END', 'TC']
     result = []
     for cat in catkeys:
         result.append(cat +
                       catlog[cat] +
                       (code2intervalmap[cat[-1]],))
-    return tsutils.printiso(result,
-                            tablefmt=tablefmt,
-                            headers=header)
+    return result
 
 
-@mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
+@mando.command('dump', formatter_class=RSTHelpFormatter, doctype='numpy')
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
-def dump(hbnfilename, time_stamp='begin'):
+def dump_cli(hbnfilename, time_stamp='begin'):
     '''
     Prints out ALL data from a HSPF binary output file.
 
@@ -430,6 +443,13 @@ def dump(hbnfilename, time_stamp='begin'):
         If set to any other string, the reported time stamp will
         represent the end of the interval.  Default is 'begin'.Z
 
+    '''
+    tsutils._printiso(dump(hbnfilename, time_stamp=time_stamp))
+
+
+def dump(hbnfilename, time_stamp='begin'):
+    '''
+    Prints out ALL data from a HSPF binary output file.
     '''
     if time_stamp not in ['begin', 'end']:
         raise ValueError('''
@@ -453,7 +473,7 @@ def dump(hbnfilename, time_stamp='begin'):
         result = tsutils.asbestfreq(result)
         result = result.tshift(-1)
 
-    return tsutils.printiso(result)
+    return result
 
 
 @mando.command()
