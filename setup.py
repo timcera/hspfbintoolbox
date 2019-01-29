@@ -1,6 +1,8 @@
 from setuptools import setup
 import sys, os
 
+version = open("VERSION").readline().strip()
+
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist')
     os.system('twine upload dist/hspfbintoolbox-{0}*'.format(version))
@@ -8,8 +10,6 @@ if sys.argv[-1] == 'publish':
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-
-version = open("VERSION").readline().strip()
 
 install_requires = [
     # List your project dependencies here.
