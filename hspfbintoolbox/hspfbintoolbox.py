@@ -153,29 +153,42 @@ def _get_data(binfilename,
                 reclen1, reclen2, reclen3, reclen = struct.unpack('4B',
                                                                   fl.read(4))
             except struct.error:
+                # End of file.
                 break
             reclen1 = int(reclen1/4)
             reclen2 = reclen2*64 + reclen1
             reclen3 = reclen3*16384 + reclen2
-            reclen = reclen*4194304 + reclen3
-            slen = 0
+            reclen = reclen*4194304 + reclen3 - 24
+
+            r24 = fl.read(24)
             rectype, optype, lue, section = struct.unpack('I8sI8s',
-                                                          fl.read(24))
+                                                          r24)
 
             rectype = int(rectype)
+            if rectype not in [0, 1]:
+                # This is a rare situation where should have thrown away 1 byte
+                # at the end of previous record instead always through away
+                # 2 bytes.  This means need to rewind the 24 bytes just read
+                # plus an additional byte.
+                fl.seek(-25, 1)
+                r24 = fl.read(24)
+                rectype, optype, lue, section = struct.unpack('I8sI8s',
+                                                              r24)
+
             lue = int(lue)
             optype = optype.strip()
             section = section.strip()
 
+            slen = 0
             if rectype == 0:
-                while slen < reclen - 28:
+                while slen < reclen:
                     length = struct.unpack('I', fl.read(4))[0]
                     slen = slen + length + 4
                     variable_name = struct.unpack('{0}s'.format(length),
                                                   fl.read(length))[0]
                     vnames.setdefault((lue, section), []).append(variable_name)
 
-            if rectype == 1:
+            elif rectype == 1:
                 # Data record
                 numvals = len(vnames[(lue, section)])
 
@@ -218,6 +231,13 @@ def _get_data(binfilename,
                                                               freq=pdoffset),
                                                     pd.Period(maxdate,
                                                               freq=pdoffset))
+            else:
+                raise ValueError("""
+*
+*  The record type should be 0 or 1, for some reason the
+*  record type is {0}.
+*
+""".format(rectype))
             fl.read(2)
 
     if not collect_dict:
