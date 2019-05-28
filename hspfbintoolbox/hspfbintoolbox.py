@@ -148,7 +148,7 @@ def _get_data(binfilename,
         ndates = {}
         rectype = 0
         fl.read(1)
-        while 1:
+        while True:
             try:
                 reclen1, reclen2, reclen3, reclen = struct.unpack('4B',
                                                                   fl.read(4))
@@ -156,7 +156,8 @@ def _get_data(binfilename,
                 # End of file.
                 break
 
-            rectype, optype, lue, section = struct.unpack('I8sI8s', fl.read(24))
+            rectype, optype, lue, section = struct.unpack(
+                'I8sI8s', fl.read(24))
 
             rectype = int(rectype)
             lue = int(lue)
@@ -165,10 +166,10 @@ def _get_data(binfilename,
 
             slen = 0
             if rectype == 0:
-                reclen1 = int(reclen1/4)
-                reclen2 = reclen2*64 + reclen1
-                reclen3 = reclen3*16384 + reclen2
-                reclen = reclen*4194304 + reclen3 - 24
+                reclen1 = int(reclen1 / 4)
+                reclen2 = reclen2 * 64 + reclen1
+                reclen3 = reclen3 * 16384 + reclen2
+                reclen = reclen * 4194304 + reclen3 - 24
                 while slen < reclen:
                     length = struct.unpack('I', fl.read(4))[0]
                     slen = slen + length + 4
@@ -189,7 +190,7 @@ def _get_data(binfilename,
                  minute) = struct.unpack('7I', fl.read(28))
 
                 vals = struct.unpack('{0}f'.format(numvals),
-                                     fl.read(4*numvals))
+                                     fl.read(4 * numvals))
                 if hour == 24:
                     ndate = datetime.datetime(year, month, day) + \
                         datetime.timedelta(hours=24) + \
@@ -368,8 +369,7 @@ def extract(hbnfilename, interval, *labels, **kwds):
     index, data = _get_data(hbnfilename, interval, labels,
                             catalog_only=False)
     index = index[interval2codemap[interval]]
-    index = list(index.keys())
-    index.sort()
+    index = sorted(index.keys())
     skeys = list(data.keys())
     if sortall is True:
         skeys.sort(key=lambda tup: tup[1:])
@@ -423,8 +423,7 @@ def catalog(hbnfilename):
     catlog = _get_data(hbnfilename, None, [',,,'], catalog_only=True)[1]
     if tsutils.test_cli() is False:
         return catlog
-    catkeys = list(catlog.keys())
-    catkeys.sort()
+    catkeys = sorted(catlog.keys())
     result = []
     for cat in catkeys:
         result.append(cat +
@@ -467,8 +466,7 @@ def dump(hbnfilename, time_stamp='begin'):
 '''.format(time_stamp))
 
     index, data = _get_data(hbnfilename, None, [',,,'], catalog_only=False)
-    skeys = list(data.keys())
-    skeys.sort()
+    skeys = sorted(data.keys())
 
     result = pd.concat([pd.Series(data[i], index=index) for i in skeys],
                        axis=1, join_axes=[pd.Index(index)])
