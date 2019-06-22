@@ -1,15 +1,37 @@
+
+import os
+import sys
+import shutil
+
 from setuptools import setup
-import sys, os
+
+# temporarily redirect config directory to prevent matplotlib importing
+# testing that for writeable directory which results in sandbox error in
+# certain easy_install versions
+os.environ["MPLCONFIGDIR"] = "."
+
+pkg_name = 'hspfbintoolbox'
 
 version = open("VERSION").readline().strip()
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist')
-    os.system('twine upload dist/hspfbintoolbox-{0}*'.format(version))
+
+    # The following block of code is to set the timestamp on files to
+    # 'now', otherwise ChromeOS/google drive sets to 1970-01-01 and then
+    # no one can install it because zip doesn't support dates before
+    # 1980.
+    os.chdir('dist')
+    os.system('tar xvzf {pkg_name}-{version}.tar.gz'.format(**locals()))
+    os.system('find {pkg_name}-{version}* -exec touch {{}} \\;'.format(**locals()))
+    os.system('tar czf {pkg_name}-{version}.tar.gz {pkg_name}-{version}'.format(**locals()))
+    shutil.rmtree('{pkg_name}-{version}'.format(**locals()))
+    os.chdir('..')
+
+    os.system('twine upload dist/{pkg_name}-{version}.tar.gz'.format(**locals()))
     sys.exit()
 
-here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, 'README.rst')).read()
+README = open("./README.rst").read()
 
 install_requires = [
     # List your project dependencies here.
@@ -19,7 +41,7 @@ install_requires = [
 ]
 
 
-setup(name='hspfbintoolbox',
+setup(name=pkg_name,
     version=version,
     description=("Reads Hydrological Simulation Program - "
                  "FORTRAN binary files and prints to screen."),
@@ -37,17 +59,17 @@ setup(name='hspfbintoolbox',
       'Topic :: Scientific/Engineering',
       'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    keywords='hspf binary hydrologic',
+    keywords='hspf binary hydrologic simulation model',
     author='Tim Cera, P.E.',
     author_email='tim@cerazone.net',
-    url='http://timcera.bitbucket.io/hspfbintoolbox/docsrc/index.html',
-    packages=['hspfbintoolbox'],
+    url='http://timcera.bitbucket.io/{pkg_name}/docsrc/index.html'.format(**locals()),
+    packages=[pkg_name],
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
     entry_points={
         'console_scripts':
-            ['hspfbintoolbox=hspfbintoolbox.hspfbintoolbox:main']
+            ['{pkg_name}={pkg_name}.{pkg_name}:main'.format(**locals())]
     },
     python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
 )
