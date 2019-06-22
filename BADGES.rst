@@ -11,7 +11,7 @@
     :target: https://pypi.python.org/pypi/hspfbintoolbox
 
 .. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg
-    :alt: hspfbintoolbox license
+    :alt: BSD-3 clause license
     :target: https://pypi.python.org/pypi/hspfbintoolbox/
 
 .. image:: http://img.shields.io/pypi/dd/hspfbintoolbox.svg
