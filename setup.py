@@ -42,34 +42,33 @@ install_requires = [
 
 
 setup(name=pkg_name,
-    version=version,
-    description=("Reads Hydrological Simulation Program - "
-                 "FORTRAN binary files and prints to screen."),
-    long_description=README,
-    classifiers=[
-      # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-      'Development Status :: 5 - Production/Stable',
-      'Environment :: Console',
-      'Intended Audience :: Developers',
-      'Intended Audience :: End Users/Desktop',
-      'License :: OSI Approved :: BSD License',
-      'Operating System :: OS Independent',
-      'Programming Language :: Python :: 2',
-      'Programming Language :: Python :: 3',
-      'Topic :: Scientific/Engineering',
-      'Topic :: Software Development :: Libraries :: Python Modules',
-    ],
-    keywords='hspf binary hydrologic simulation model',
-    author='Tim Cera, P.E.',
-    author_email='tim@cerazone.net',
-    url='http://timcera.bitbucket.io/{pkg_name}/docsrc/index.html'.format(**locals()),
-    packages=[pkg_name],
-    include_package_data=True,
-    zip_safe=False,
-    install_requires=install_requires,
-    entry_points={
-        'console_scripts':
-            ['{pkg_name}={pkg_name}.{pkg_name}:main'.format(**locals())]
-    },
-    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
+      version=version,
+      description=("Reads Hydrological Simulation Program - "
+                   "FORTRAN binary output files."),
+      long_description=README,
+      classifiers=[
+        # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: End Users/Desktop',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+      ],
+      keywords='hspf binary hydrologic simulation model',
+      author='Tim Cera, P.E.',
+      author_email='tim@cerazone.net',
+      url='http://timcera.bitbucket.io/{pkg_name}/docsrc/index.html'.format(**locals()),
+      packages=[pkg_name],
+      include_package_data=True,
+      zip_safe=False,
+      install_requires=install_requires,
+      entry_points={
+          'console_scripts':
+              ['{pkg_name}={pkg_name}.{pkg_name}:main'.format(**locals())]
+      },
+      python_requires='>=3.5,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
 )
