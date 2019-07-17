@@ -13,6 +13,7 @@ import subprocess
 from unittest import TestCase
 from pandas.util.testing import assert_frame_equal
 import sys
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -23,11 +24,11 @@ from hspfbintoolbox import hspfbintoolbox
 
 
 def capture(func, *args, **kwds):
-    sys.stdout = StringIO()      # capture output
+    sys.stdout = StringIO()  # capture output
     out = func(*args, **kwds)
     out = sys.stdout.getvalue()  # release output
     try:
-        out = bytes(out, 'utf-8')
+        out = bytes(out, "utf-8")
     except:
         pass
     return out
@@ -35,7 +36,7 @@ def capture(func, *args, **kwds):
 
 class TestDescribe(TestCase):
     def setUp(self):
-        self.extract = b'''Datetime,PERLND_905_AGWS_5
+        self.extract = b"""Datetime,PERLND_905_AGWS_5
 1950-01-01,0.844675
 1951-01-01,1.0192
 1952-01-01,0.267736
@@ -87,18 +88,17 @@ class TestDescribe(TestCase):
 1998-01-01,1.30317
 1999-01-01,1.40244
 2000-01-01,0.0191165
-'''
+"""
         self.extract_api = StringIO(self.extract.decode())
 
     def test_extract_cli(self):
-        args = 'hspfbintoolbox extract tests/6b_np1.hbn yearly ,905,,AGWS'
+        args = "hspfbintoolbox extract tests/6b_np1.hbn yearly ,905,,AGWS"
         args = shlex.split(args)
-        out = subprocess.Popen(args,
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE).communicate()[0]
+        out = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stdin=subprocess.PIPE
+        ).communicate()[0]
         self.assertEqual(out, self.extract)
 
     def test_extract_sub(self):
-        out = hspfbintoolbox.extract('tests/6b_np1.hbn', 'yearly', ',905,,AGWS')
+        out = hspfbintoolbox.extract("tests/6b_np1.hbn", "yearly", ",905,,AGWS")
         assert_frame_equal(out, pd.DataFrame.from_csv(self.extract_api))
-

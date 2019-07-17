@@ -14,6 +14,7 @@ import subprocess
 from unittest import TestCase
 from pandas.util.testing import assert_frame_equal
 import sys
+
 try:
     from cStringIO import StringIO
 except:
@@ -22,36 +23,41 @@ except:
 import pandas as pd
 from hspfbintoolbox import hspfbintoolbox
 
-interval2codemap = {'yearly': 5,
-                    'monthly': 4,
-                    'daily': 3,
-                    'bivl': 2}
+interval2codemap = {"yearly": 5, "monthly": 4, "daily": 3, "bivl": 2}
+
 
 def capture(func, *args, **kwds):
-    sys.stdout = StringIO()      # capture output
+    sys.stdout = StringIO()  # capture output
     out = func(*args, **kwds)
     out = sys.stdout.getvalue()  # release output
     try:
-        out = bytes(out, 'utf-8')
+        out = bytes(out, "utf-8")
     except:
         pass
     return out
 
 
-def read_unicode_csv(filename, delimiter=',', quotechar='"',
-                     quoting=csv.QUOTE_MINIMAL, lineterminator='\n',
-                     encoding='utf-8'):
+def read_unicode_csv(
+    filename,
+    delimiter=",",
+    quotechar='"',
+    quoting=csv.QUOTE_MINIMAL,
+    lineterminator="\n",
+    encoding="utf-8",
+):
     # Python 3 version
     if sys.version_info[0] >= 3:
         # Open the file in text mode with given encoding
         # Set newline arg to ''
         # (see https://docs.python.org/3/library/csv.html)
         # Next, get the csv reader, with unicode delimiter and quotechar
-        csv_reader = csv.reader(filename,
-                                delimiter=delimiter,
-                                quotechar=quotechar,
-                                quoting=quoting,
-                                lineterminator=lineterminator)
+        csv_reader = csv.reader(
+            filename,
+            delimiter=delimiter,
+            quotechar=quotechar,
+            quoting=quoting,
+            lineterminator=lineterminator,
+        )
         # Now, iterate over the (already decoded) csv_reader generator
         for row in csv_reader:
             yield row
@@ -59,11 +65,13 @@ def read_unicode_csv(filename, delimiter=',', quotechar='"',
     else:
         # Next, get the csv reader, passing delimiter and quotechar as
         # bytestrings rather than unicode
-        csv_reader = csv.reader(filename,
-                                delimiter=delimiter.encode(encoding),
-                                quotechar=quotechar.encode(encoding),
-                                quoting=quoting,
-                                lineterminator=lineterminator)
+        csv_reader = csv.reader(
+            filename,
+            delimiter=delimiter.encode(encoding),
+            quotechar=quotechar.encode(encoding),
+            quoting=quoting,
+            lineterminator=lineterminator,
+        )
         # Iterate over the file and decode each string into unicode
         for row in csv_reader:
             yield [cell.decode(encoding) for cell in row]
@@ -71,7 +79,7 @@ def read_unicode_csv(filename, delimiter=',', quotechar='"',
 
 class TestDescribe(TestCase):
     def setUp(self):
-        self.catalog = b'''\
+        self.catalog = b"""\
 LUE   ,  LC,GROUP  ,VAR  ,  TC,START  ,END  ,TC
 IMPLND,  11,IWATER ,IMPEV,   5,1951   ,2001 ,yearly
 IMPLND,  11,IWATER ,PET  ,   5,1951   ,2001 ,yearly
@@ -2233,7 +2241,7 @@ PERLND, 905,PWATER ,TAET ,   5,1951   ,2001 ,yearly
 PERLND, 905,PWATER ,UZET ,   5,1951   ,2001 ,yearly
 PERLND, 905,PWATER ,UZI  ,   5,1951   ,2001 ,yearly
 PERLND, 905,PWATER ,UZS  ,   5,1951   ,2001 ,yearly
-'''
+"""
         ndict = []
         rd = read_unicode_csv(StringIO(self.catalog.decode()))
         next(rd)
@@ -2241,22 +2249,19 @@ PERLND, 905,PWATER ,UZS  ,   5,1951   ,2001 ,yearly
             if len(row) == 0:
                 continue
             nrow = [i.strip() for i in row]
-            ndict.append((nrow[0],
-                          int(nrow[1]),
-                          nrow[2],
-                          nrow[3],
-                          interval2codemap[nrow[7]]))
+            ndict.append(
+                (nrow[0], int(nrow[1]), nrow[2], nrow[3], interval2codemap[nrow[7]])
+            )
         self.ncatalog = sorted(ndict)
 
     def test_catalog_api(self):
-        out = hspfbintoolbox.catalog('tests/6b_np1.hbn')
+        out = hspfbintoolbox.catalog("tests/6b_np1.hbn")
         self.assertEqual(sorted(out.keys()), self.ncatalog)
 
     def test_catalog_cli(self):
-        args = 'hspfbintoolbox catalog --tablefmt csv tests/6b_np1.hbn'
+        args = "hspfbintoolbox catalog --tablefmt csv tests/6b_np1.hbn"
         args = shlex.split(args)
-        out = subprocess.Popen(args,
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE).communicate()[0]
+        out = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stdin=subprocess.PIPE
+        ).communicate()[0]
         self.assertEqual(out, self.catalog)
-
