@@ -6,7 +6,7 @@ python:
   - 3.5
   - 3.6
   - 3.7
-  - 3.8
+  - 3.8-dev
 
 cache:
   pip: true
@@ -26,6 +26,9 @@ install:
   - pip install --upgrade scipy
   - pip install --upgrade pandas
   - pip install --upgrade coveralls
+  - pip install --upgrade pytest
+  - pip install --upgrade pytest-cov
+  - pip install --upgrade pytest-mpl
   - python setup.py install
 
 script:
