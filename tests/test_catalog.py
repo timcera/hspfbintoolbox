@@ -2256,7 +2256,9 @@ PERLND, 905,PWATER ,UZS  ,   5,1951   ,2001 ,yearly
 
     def test_catalog_api(self):
         out = hspfbintoolbox.catalog("tests/6b_np1.hbn")
-        self.assertEqual(sorted(out.keys()), self.ncatalog)
+        out = [i[:5] for i in out]
+        self.assertEqual(out, self.ncatalog)
+        #self.assertEqual([list(i[:5]) for i in out], self.ncatalog)
 
     def test_catalog_cli(self):
         args = "hspfbintoolbox catalog --tablefmt csv tests/6b_np1.hbn"

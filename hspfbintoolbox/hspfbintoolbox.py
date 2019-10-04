@@ -475,8 +475,6 @@ def catalog(hbnfilename):
     # PERLND  905  PWATER  SURS  5  1951  2001  yearly
     # PERLND  905  PWATER  TAET  5  1951  2001  yearly
     catlog = _get_data(hbnfilename, None, [",,,"], catalog_only=True)[1]
-    if tsutils.test_cli() is False:
-        return catlog
     catkeys = sorted(catlog.keys())
     result = []
     for cat in catkeys:
