@@ -112,28 +112,28 @@ def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
         words = [lindex] + label.split(",")
         if len(words) != 5:
             raise ValueError(
-                """
-*
-*   The label '{0}' has the wrong number of entries.
-*
+                tsutils.error_wrapper(
+                    """
+The label '{0}' has the wrong number of entries.
 """.format(
-                    label
+                        label
+                    )
                 )
             )
 
-        words = [None if i is "" else i for i in words]
+        words = [None if i == "" else i for i in words]
 
         if words[1] is not None:
             words[1] = words[1].upper()
             if words[1] not in testem.keys():
                 raise ValueError(
-                    """
-*
-*   Operation type must be one of 'PERLND', 'IMPLND', 'RCHRES', or 'BMPRAC',
-*   or missing (to get all) instead of {0}.
-*
+                    tsutils.error_wrapper(
+                        """
+Operation type must be one of 'PERLND', 'IMPLND', 'RCHRES', or 'BMPRAC',
+or missing (to get all) instead of {0}.
 """.format(
-                        words[1]
+                            words[1]
+                        )
                     )
                 )
 
@@ -144,13 +144,13 @@ def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
                     raise ValueError()
             except (ValueError, TypeError):
                 raise ValueError(
-                    """
-*
-*   The land use element must be an integer from 1 to 999 inclusive,
-*   instead of {0}.
-*
+                    tsutils.error_wrapper(
+                        """
+The land use element must be an integer from 1 to 999 inclusive,
+instead of {0}.
 """.format(
-                        words[2]
+                            words[2]
+                        )
                     )
                 )
 
@@ -158,14 +158,14 @@ def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
             words[3] = words[3].upper()
             if words[3] not in testem[words[1]]:
                 raise ValueError(
-                    """
-*
-*   The {0} operation type only allows the variable groups:
-*   {1},
-*   instead you gave {2}.
-*
+                    tsutils.error_wrapper(
+                        """
+The {0} operation type only allows the variable groups:
+{1},
+instead you gave {2}.
 """.format(
-                        words[1], testem[words[1]][:-1], words[3]
+                            words[1], testem[words[1]][:-1], words[3]
+                        )
                     )
                 )
 
@@ -262,11 +262,15 @@ def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
 
     if not collect_dict:
         raise ValueError(
-            """
-*
-*   The label specifications matched no records in the binary file.
-*
-"""
+            tsutils.error_wrapper(
+                """
+The label specifications below matched no records in the binary file.
+
+{lablist}
+""".format(
+                    **locals()
+                )
+            )
         )
 
     if catalog_only is False:
@@ -276,13 +280,13 @@ def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
                 not_in_file.append(labels[loopcnt])
         if not_in_file:
             warnings.warn(
-                """
-*
-*   The specification{0} {1}
-*   matched no records in the binary file.
-*
+                tsutils.error_wrapper(
+                    """
+The specification{0} {1}
+matched no records in the binary file.
 """.format(
-                    "s"[len(not_in_file) == 1 :], not_in_file
+                        "s"[len(not_in_file) == 1 :], not_in_file
+                    )
                 )
             )
 
@@ -368,13 +372,13 @@ def extract(hbnfilename, interval, *labels, **kwds):
         time_stamp = "begin"
     if time_stamp not in ["begin", "end"]:
         raise ValueError(
-            """
-*
-*   The "time_stamp" optional keyword must be either
-*   "begin" or "end".  You gave {0}.
-*
+            tsutils.error_wrapper(
+                """
+The "time_stamp" optional keyword must be either
+"begin" or "end".  You gave {0}.
 """.format(
-                time_stamp
+                    time_stamp
+                )
             )
         )
 
@@ -384,39 +388,39 @@ def extract(hbnfilename, interval, *labels, **kwds):
         sortall = False
     if not (sortall is True or sortall is False):
         raise ValueError(
-            """
-*
-*   The "sorted" optional keyword must be either
-*   True or False.  You gave {0}.
-*
+            tsutils.error_wrapper(
+                """
+The "sorted" optional keyword must be either
+True or False.  You gave {0}.
 """.format(
-                sortall
+                    sortall
+                )
             )
         )
 
     if len(kwds) > 0:
         raise ValueError(
-            """
-*
-*   The extract command only accepts optional keywords 'time_stamp' and
-*   'sorted'.  You gave {0}.
-*
+            tsutils.error_wrapper(
+                """
+The extract command only accepts optional keywords 'time_stamp' and
+'sorted'.  You gave {0}.
 """.format(
-                list(kwds.keys())
+                    list(kwds.keys())
+                )
             )
         )
 
     interval = interval.lower()
     if interval not in ["bivl", "daily", "monthly", "yearly"]:
         raise ValueError(
-            """
-*
-*   The "interval" argument must be one of "bivl",
-*   "daily", "monthly", or "yearly".  You supplied
-*   "{0}".
-*
+            tsutils.error_wrapper(
+                """
+The "interval" argument must be one of "bivl",
+"daily", "monthly", or "yearly".  You supplied
+"{0}".
 """.format(
-                interval
+                    interval
+                )
             )
         )
 
@@ -429,12 +433,11 @@ def extract(hbnfilename, interval, *labels, **kwds):
     else:
         skeys.sort()
 
-    result = pd.concat(
-        [pd.Series(data[i], index=index) for i in skeys],
-        axis=1,
-        join_axes=[pd.Index(index)],
+    result = pd.DataFrame(
+        pd.concat([pd.Series(data[i], index=index) for i in skeys], sort=False).reindex(
+            index, axis=1
+        )
     )
-
     columns = ["{0}_{1}_{2}_{3}".format(i[1], i[2], i[4], i[5]) for i in skeys]
     result.columns = columns
 
@@ -509,23 +512,23 @@ def dump(hbnfilename, time_stamp="begin"):
     """
     if time_stamp not in ["begin", "end"]:
         raise ValueError(
-            """
-*
-*   The "time_stamp" optional keyword must be either
-*   "begin" or "end".  You gave {0}.
-*
+            tsutils.error_wrapper(
+                """
+The "time_stamp" optional keyword must be either
+"begin" or "end".  You gave {0}.
 """.format(
-                time_stamp
+                    time_stamp
+                )
             )
         )
 
     index, data = _get_data(hbnfilename, None, [",,,"], catalog_only=False)
     skeys = sorted(data.keys())
 
-    result = pd.concat(
-        [pd.Series(data[i], index=index) for i in skeys],
-        axis=1,
-        join_axes=[pd.Index(index)],
+    result = pd.DataFrame(
+        pd.concat([pd.Series(data[i], index=index) for i in skeys], sort=False).reindex(
+            index, axis=1
+        )
     )
 
     columns = ["{0}_{1}_{2}_{3}".format(i[1], i[2], i[4], i[5]) for i in skeys]

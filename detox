@@ -17,7 +17,7 @@ pkgs="\
      "
 
 # pandas no longer supports 2.6
-envs=(~/python_ves/python-3.7.3)
+envs=(~/python_ves/python-3.8.0)
 
 for env in ${envs[@]}; do
     echo "${env}"

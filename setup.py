@@ -38,7 +38,7 @@ install_requires = [
     # List your project dependencies here.
     # For more details, see:
     # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
-    "tstoolbox >= 40.87.42.28"
+    "tstoolbox >= 43.89.43.31"
 ]
 
 
