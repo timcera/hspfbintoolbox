@@ -8,7 +8,6 @@ pkgs="\
      numpy \
      scipy \
      matplotlib \
-     nose \
      dateutil \
      pandas \
      pip \
@@ -17,7 +16,10 @@ pkgs="\
      "
 
 # pandas no longer supports 2.6
+#~/python_ves/python-3.5.2 \
 envs=(~/python_ves/python-3.8.0)
+
+pytest_opts='--doctest-modules --ignore docsrc --mpl'
 
 for env in ${envs[@]}; do
     echo "${env}"
@@ -29,20 +31,13 @@ for env in ${envs[@]}; do
     pip uninstall -y ${program}
     rm -rf build
     python setup.py develop
-
-    nosetests \
-        --with-coverage \
-        --cover-tests \
-        --cover-package=${program} \
-        --cover-branches \
-        --cover-erase \
-        -s
+    pytest ${pytest_opts}
     deactivate
 done
 
 source "${env}"/bin/activate
 coverage erase
-coverage run `which nosetests`
+coverage run `which pytest` ${pytest_opts}
 coverage report --include="${program}/*" --omit="tests/*"
 coverage html --include="${program}/*" --omit="tests/*"
 flake8 ${program}/__init__.py ${program}/${program}.py --exit-zero

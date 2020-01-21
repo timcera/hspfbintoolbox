@@ -434,8 +434,9 @@ The "interval" argument must be one of "bivl",
         skeys.sort()
 
     result = pd.DataFrame(
-        pd.concat([pd.Series(data[i], index=index) for i in skeys], sort=False).reindex(
-            index, axis=1
+        pd.concat([pd.Series(data[i], index=index) for i in skeys],
+                  sort=False, axis=1).reindex(
+            pd.Index(index)
         )
     )
     columns = ["{0}_{1}_{2}_{3}".format(i[1], i[2], i[4], i[5]) for i in skeys]
@@ -526,8 +527,9 @@ The "time_stamp" optional keyword must be either
     skeys = sorted(data.keys())
 
     result = pd.DataFrame(
-        pd.concat([pd.Series(data[i], index=index) for i in skeys], sort=False).reindex(
-            index, axis=1
+        pd.concat([pd.Series(data[i], index=index) for i in skeys],
+                  sort=False, axis=1).reindex(
+            pd.Index(index)
         )
     )
 
