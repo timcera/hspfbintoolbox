@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 import sys
 import shutil
@@ -15,20 +18,6 @@ version = open("VERSION").readline().strip()
 
 if sys.argv[-1] == "publish":
     os.system("python setup.py sdist")
-
-    # The following block of code is to set the timestamp on files to
-    # 'now', otherwise ChromeOS/google drive sets to 1970-01-01 and then
-    # no one can install it because zip doesn't support dates before
-    # 1980.
-    os.chdir("dist")
-    os.system("tar xvzf {pkg_name}-{version}.tar.gz".format(**locals()))
-    os.system("find {pkg_name}-{version}* -exec touch {{}} \\;".format(**locals()))
-    os.system(
-        "tar czf {pkg_name}-{version}.tar.gz {pkg_name}-{version}".format(**locals())
-    )
-    shutil.rmtree("{pkg_name}-{version}".format(**locals()))
-    os.chdir("..")
-
     os.system("twine upload dist/{pkg_name}-{version}.tar.gz".format(**locals()))
     sys.exit()
 
@@ -41,7 +30,6 @@ install_requires = [
     "tstoolbox >= 43.89.43.31"
 ]
 
-
 setup(
     name=pkg_name,
     version=version,
@@ -50,7 +38,8 @@ setup(
     ),
     long_description=README,
     classifiers=[
-        # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        # Get strings from
+        # http://pypi.python.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Intended Audience :: Developers",
