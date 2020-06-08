@@ -307,7 +307,7 @@ def extract_cli(hbnfilename, interval, *labels, **kwds):
         for hourly output, but can be set to any value that evenly divides into
         a day.
 
-    labels
+    labels: str
         The remaining arguments uniquely identify a time-series in the
         binary file.  The format is 'OPERATIONTYPE,ID,VARIABLE_GROUP,VARIABLE'.
 
@@ -347,17 +347,18 @@ def extract_cli(hbnfilename, interval, *labels, **kwds):
             'BMPRAC,875,,RMVOL'.
 
     kwds:
-        [optional]
+        Current the allowable keywords are 'time_stamp' and
+        'sorted'.
 
-        Current the allowable keywords are 'time_stamp' and 'sorted'.
-        time_stamp
+        time_stamp:
         [optional, default is 'begin']
 
         For the interval defines the location of the time stamp. If set to
         'begin', the time stamp is at the beginning of the interval.  If set to
         any other string, the reported time stamp will represent the end of the
         interval.  Place after ALL labels.
-        sorted
+
+        sorted:
         [optional, default is False]
 
         Should ALL columns be sorted?  Place after ALL labels."""
