@@ -444,7 +444,7 @@ The "interval" argument must be one of "bivl",
 
     if time_stamp == "begin":
         result = tsutils.asbestfreq(result)
-        result = result.shift(-1)
+        result = result.shift(-1, freq="infer")
 
     result.index.name = "Datetime"
 
@@ -537,7 +537,7 @@ The "time_stamp" optional keyword must be either
 
     if time_stamp == "begin":
         result = tsutils.asbestfreq(result)
-        result = result.shift(-1)
+        result = result.shift(-1, freq="infer")
 
     return result
 

@@ -12,7 +12,7 @@ import csv
 import shlex
 import subprocess
 from unittest import TestCase
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 import sys
 
 try:
