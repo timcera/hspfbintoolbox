@@ -9,10 +9,15 @@ import warnings
 import os
 import sys
 import struct
+try:
+    from typing import Literal
+except ImportError:
+    from type_extensions import Literal
 
 import mando
 from mando.rst_text_formatter import RSTHelpFormatter
 import pandas as pd
+import typic
 
 from tstoolbox import tsutils
 
@@ -365,7 +370,8 @@ def extract_cli(hbnfilename, interval, *labels, **kwds):
     tsutils._printiso(extract(hbnfilename, interval, *labels, **kwds))
 
 
-def extract(hbnfilename, interval, *labels, **kwds):
+@typic.al
+def extract(hbnfilename: str, interval: Literal["yearly", "monthly", "daily", "BIVL"], *labels, **kwds):
     r"""Returns a DataFrame from a HSPF binary output file."""
     try:
         time_stamp = kwds.pop("time_stamp")
@@ -472,7 +478,8 @@ def catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     tsutils._printiso(catalog(hbnfilename), tablefmt=tablefmt, headers=header)
 
 
-def catalog(hbnfilename):
+@typic.al
+def catalog(hbnfilename: str):
     """
     Prints out a catalog of data sets in the binary file.
     """
@@ -507,7 +514,8 @@ def dump_cli(hbnfilename, time_stamp="begin"):
     tsutils._printiso(dump(hbnfilename, time_stamp=time_stamp))
 
 
-def dump(hbnfilename, time_stamp="begin"):
+@typic.al
+def dump(hbnfilename: str, time_stamp: Literal["begin", "end"]="begin"):
     """
     Prints out ALL data from a HSPF binary output file.
     """

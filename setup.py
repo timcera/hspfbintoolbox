@@ -27,7 +27,7 @@ install_requires = [
     # List your project dependencies here.
     # For more details, see:
     # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
-    "tstoolbox >= 43.89.43.31"
+    "tstoolbox >= 102, < 103"
 ]
 
 setup(
@@ -46,7 +46,9 @@ setup(
         "Intended Audience :: End Users/Desktop",
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
@@ -61,5 +63,5 @@ setup(
     entry_points={
         "console_scripts": ["{pkg_name}={pkg_name}.{pkg_name}:main".format(**locals())]
     },
-    python_requires=">=3.6",
+    python_requires=">=3.7.1",
 )
