@@ -12,7 +12,7 @@ import struct
 try:
     from typing import Literal
 except ImportError:
-    from type_extensions import Literal
+    from typing_extensions import Literal
 
 import mando
 from mando.rst_text_formatter import RSTHelpFormatter
