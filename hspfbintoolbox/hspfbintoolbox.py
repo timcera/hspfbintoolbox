@@ -9,6 +9,7 @@ import warnings
 import os
 import sys
 import struct
+
 try:
     from typing import Literal
 except ImportError:
@@ -371,7 +372,12 @@ def extract_cli(hbnfilename, interval, *labels, **kwds):
 
 
 @typic.al
-def extract(hbnfilename: str, interval: Literal["yearly", "monthly", "daily", "BIVL"], *labels, **kwds):
+def extract(
+    hbnfilename: str,
+    interval: Literal["yearly", "monthly", "daily", "BIVL"],
+    *labels,
+    **kwds
+):
     r"""Returns a DataFrame from a HSPF binary output file."""
     try:
         time_stamp = kwds.pop("time_stamp")
@@ -515,7 +521,7 @@ def dump_cli(hbnfilename, time_stamp="begin"):
 
 
 @typic.al
-def dump(hbnfilename: str, time_stamp: Literal["begin", "end"]="begin"):
+def dump(hbnfilename: str, time_stamp: Literal["begin", "end"] = "begin"):
     """
     Prints out ALL data from a HSPF binary output file.
     """
@@ -552,15 +558,13 @@ The "time_stamp" optional keyword must be either
 
 @mando.command()
 def about():
-    """Display version number and system information.
-    """
+    """Display version number and system information."""
     tsutils.about(__name__)
 
 
 @mando.command
 def time_series(hbnfilename, interval, *labels, **kwds):
-    """ DEPRECATED: Use 'extract' instead.
-    """
+    """DEPRECATED: Use 'extract' instead."""
     return extract(hbnfilename, interval, *labels, **kwds)
 
 
