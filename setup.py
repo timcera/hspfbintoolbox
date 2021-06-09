@@ -17,6 +17,7 @@ pkg_name = "hspfbintoolbox"
 version = open("VERSION").readline().strip()
 
 if sys.argv[-1] == "publish":
+    os.system("cleanpy .")
     os.system("python setup.py sdist")
     os.system("twine upload dist/{pkg_name}-{version}.tar.gz".format(**locals()))
     sys.exit()
@@ -29,6 +30,20 @@ install_requires = [
     # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
     "tstoolbox >= 103",
 ]
+
+extras_require = {
+    "dev": [
+        "black",
+        "cleanpy",
+        "twine",
+        "pytest",
+        "coverage",
+        "flake8",
+        "pytest-cov",
+        "pytest-mpl",
+        "pre-commit",
+    ]
+}
 
 setup(
     name=pkg_name,
@@ -63,5 +78,6 @@ setup(
     entry_points={
         "console_scripts": ["{pkg_name}={pkg_name}.{pkg_name}:main".format(**locals())]
     },
+    extras_require=extras_require,
     python_requires=">=3.7.1",
 )

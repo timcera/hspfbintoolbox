@@ -18,4 +18,3 @@ extract
 time_series
 ~~~~~~~~~~~
 .. program-output:: hspfbintoolbox time_series --help
-

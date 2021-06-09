@@ -45,19 +45,19 @@ Just run 'hspfbintoolbox' to get a list of subcommands:
  catalog
           Prints out a catalog of data sets in the binary file.
 
- dump     
+ dump
           Prints out ALL data from a HSPF binary output file.
 
  extract
           Prints out data to the screen from a HSPF binary output file.
 
- time_series  
+ time_series
           DEPRECATED: Use 'extract' instead.
 
 The default for all of the subcommands is to accept data from stdin
 (typically a pipe).  If a subcommand accepts an input file for an argument,
 you can use "--infile=filename", or to explicitly specify from stdin use
-"--infile='-'" .  
+"--infile='-'" .
 
 For the subcommands that output data it is printed to the screen and you can
 then redirect to a file.

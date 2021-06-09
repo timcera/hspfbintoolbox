@@ -114,6 +114,9 @@ def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
         intervalcode = None
 
     # Fixup and test the labels - could be in it's own function
+    if isinstance(labels, str):
+        labels = labels.split(" ")
+    labels = tsutils.flatten(labels)
     for lindex, label in enumerate(labels):
         words = [lindex] + label.split(",")
         if len(words) != 5:

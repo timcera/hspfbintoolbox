@@ -1,6 +1,6 @@
 .. include:: ../BADGES.rst
 
-.. _hspfbintoolbox_documentation:   
+.. _hspfbintoolbox_documentation:
 
 hspfbintoolbox
 ==============
