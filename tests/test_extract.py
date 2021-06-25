@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -10,10 +9,10 @@ Tests for `hspfbintoolbox` module.
 
 import shlex
 import subprocess
-from unittest import TestCase
-from pandas.testing import assert_frame_equal
 import sys
+from unittest import TestCase
 
+from pandas.testing import assert_frame_equal
 from tstoolbox import tsutils
 
 try:
@@ -22,6 +21,7 @@ except ImportError:
     from io import StringIO
 
 import pandas as pd
+
 from hspfbintoolbox import hspfbintoolbox
 
 

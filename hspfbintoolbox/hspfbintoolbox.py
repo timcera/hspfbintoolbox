@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 hspfbintoolbox to read HSPF binary files.
 """
@@ -5,10 +6,10 @@ hspfbintoolbox to read HSPF binary files.
 from __future__ import print_function
 
 import datetime
-import warnings
 import os
-import sys
 import struct
+import sys
+import warnings
 
 try:
     from typing import Literal
@@ -16,12 +17,10 @@ except ImportError:
     from typing_extensions import Literal
 
 import mando
-from mando.rst_text_formatter import RSTHelpFormatter
 import pandas as pd
 import typic
-
+from mando.rst_text_formatter import RSTHelpFormatter
 from tstoolbox import tsutils
-
 
 code2intervalmap = {5: "yearly", 4: "monthly", 3: "daily", 2: "bivl"}
 

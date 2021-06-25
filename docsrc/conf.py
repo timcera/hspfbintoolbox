@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # hspfbintoolbox documentation build configuration file, created by
@@ -12,7 +11,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
