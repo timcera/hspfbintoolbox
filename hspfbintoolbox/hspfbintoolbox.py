@@ -49,7 +49,7 @@ def tupleCombine(a, b):
     """Part of partial ordered matching.
     See http://stackoverflow.com/a/4559604
     """
-    return tuple([i is None and j or i for i, j in zip(a, b)])
+    return tuple(i is None and j or i for i, j in zip(a, b))
 
 
 def tupleSearch(findme, haystack):
@@ -122,7 +122,7 @@ def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
             raise ValueError(
                 tsutils.error_wrapper(
                     """
-The label '{0}' has the wrong number of entries.
+The label '{}' has the wrong number of entries.
 """.format(
                         label
                     )
@@ -138,7 +138,7 @@ The label '{0}' has the wrong number of entries.
                     tsutils.error_wrapper(
                         """
 Operation type must be one of 'PERLND', 'IMPLND', 'RCHRES', or 'BMPRAC',
-or missing (to get all) instead of {0}.
+or missing (to get all) instead of {}.
 """.format(
                             words[1]
                         )
@@ -155,7 +155,7 @@ or missing (to get all) instead of {0}.
                     tsutils.error_wrapper(
                         """
 The land use element must be an integer from 1 to 999 inclusive,
-instead of {0}.
+instead of {}.
 """.format(
                             words[2]
                         )
@@ -168,9 +168,9 @@ instead of {0}.
                 raise ValueError(
                     tsutils.error_wrapper(
                         """
-The {0} operation type only allows the variable groups:
-{1},
-instead you gave {2}.
+The {} operation type only allows the variable groups:
+{},
+instead you gave {}.
 """.format(
                             words[1], testem[words[1]][:-1], words[3]
                         )
@@ -214,7 +214,7 @@ instead you gave {2}.
                     length = struct.unpack("I", fl.read(4))[0]
                     slen = slen + length + 4
                     variable_name = struct.unpack(
-                        "{0}s".format(length), fl.read(length)
+                        "{}s".format(length), fl.read(length)
                     )[0]
                     vnames.setdefault((lue, section), []).append(variable_name)
 
@@ -226,7 +226,7 @@ instead you gave {2}.
                     "7I", fl.read(28)
                 )
 
-                vals = struct.unpack("{0}f".format(numvals), fl.read(4 * numvals))
+                vals = struct.unpack("{}f".format(numvals), fl.read(4 * numvals))
                 if hour == 24:
                     ndate = (
                         datetime.datetime(year, month, day)
@@ -290,7 +290,7 @@ The label specifications below matched no records in the binary file.
             warnings.warn(
                 tsutils.error_wrapper(
                     """
-The specification{0} {1}
+The specification{} {}
 matched no records in the binary file.
 """.format(
                         "s"[len(not_in_file) == 1 :], not_in_file
@@ -309,6 +309,7 @@ def extract_cli(hbnfilename, interval, *labels, **kwds):
     Parameters
     ----------
     {hbnfilename}
+
     interval: str
         One of 'yearly', 'monthly', 'daily', or 'BIVL'.  The 'BIVL' option is
         a sub-daily interval defined in the UCI file.  Typically 'BIVL' is used
@@ -390,7 +391,7 @@ def extract(
             tsutils.error_wrapper(
                 """
 The "time_stamp" optional keyword must be either
-"begin" or "end".  You gave {0}.
+"begin" or "end".  You gave {}.
 """.format(
                     time_stamp
                 )
@@ -406,7 +407,7 @@ The "time_stamp" optional keyword must be either
             tsutils.error_wrapper(
                 """
 The "sorted" optional keyword must be either
-True or False.  You gave {0}.
+True or False.  You gave {}.
 """.format(
                     sortall
                 )
@@ -418,7 +419,7 @@ True or False.  You gave {0}.
             tsutils.error_wrapper(
                 """
 The extract command only accepts optional keywords 'time_stamp' and
-'sorted'.  You gave {0}.
+'sorted'.  You gave {}.
 """.format(
                     list(kwds.keys())
                 )
@@ -432,7 +433,7 @@ The extract command only accepts optional keywords 'time_stamp' and
                 """
 The "interval" argument must be one of "bivl",
 "daily", "monthly", or "yearly".  You supplied
-"{0}".
+"{}".
 """.format(
                     interval
                 )
@@ -453,7 +454,7 @@ The "interval" argument must be one of "bivl",
             [pd.Series(data[i], index=index) for i in skeys], sort=False, axis=1
         ).reindex(pd.Index(index))
     )
-    columns = ["{0}_{1}_{2}_{3}".format(i[1], i[2], i[4], i[5]) for i in skeys]
+    columns = ["{}_{}_{}_{}".format(i[1], i[2], i[4], i[5]) for i in skeys]
     result.columns = columns
 
     if time_stamp == "begin":
@@ -510,6 +511,7 @@ def dump_cli(hbnfilename, time_stamp="begin"):
     Parameters
     ----------
     {hbnfilename}
+
     time_stamp
         [optional, default is 'begin']
 
@@ -532,7 +534,7 @@ def dump(hbnfilename: str, time_stamp: Literal["begin", "end"] = "begin"):
             tsutils.error_wrapper(
                 """
 The "time_stamp" optional keyword must be either
-"begin" or "end".  You gave {0}.
+"begin" or "end".  You gave {}.
 """.format(
                     time_stamp
                 )
@@ -548,7 +550,7 @@ The "time_stamp" optional keyword must be either
         ).reindex(pd.Index(index))
     )
 
-    columns = ["{0}_{1}_{2}_{3}".format(i[1], i[2], i[4], i[5]) for i in skeys]
+    columns = ["{}_{}_{}_{}".format(i[1], i[2], i[4], i[5]) for i in skeys]
     result.columns = columns
 
     if time_stamp == "begin":
