@@ -78,7 +78,7 @@ setup(
     keywords="hspf binary hydrologic simulation model",
     author="Tim Cera, P.E.",
     author_email="tim@cerazone.net",
-    url="http://timcera.bitbucket.io/{pkg_name}/docsrc/index.html".format(**locals()),
+    url="http://timcera.bitbucket.io/{pkg_name}/docs/index.html".format(**locals()),
     license="BSD",
     packages=find_packages("src"),
     package_dir={"": "src"},
