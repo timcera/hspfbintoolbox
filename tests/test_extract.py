@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 catalog
 ----------------------------------
@@ -96,14 +95,17 @@ class TestDescribe(TestCase):
     def test_extract_cli(self):
         args = "hspfbintoolbox extract tests/6b_np1.hbn yearly ,905,,AGWS"
         args = shlex.split(args)
-        out = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stdin=subprocess.PIPE
-        ).communicate()[0]
+        out = subprocess.Popen(args,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE).communicate()[0]
         self.assertEqual(out, self.extract)
 
     def test_extract_sub(self):
-        out = hspfbintoolbox.extract("tests/6b_np1.hbn", "yearly", ",905,,AGWS")
+        out = hspfbintoolbox.extract("tests/6b_np1.hbn", "yearly",
+                                     ",905,,AGWS")
         otherout = tsutils.asbestfreq(
-            pd.read_csv(self.extract_api, header=0, index_col=0, parse_dates=True)
-        )
+            pd.read_csv(self.extract_api,
+                        header=0,
+                        index_col=0,
+                        parse_dates=True))
         assert_frame_equal(out, otherout)

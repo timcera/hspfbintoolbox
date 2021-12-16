@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 catalog
 ----------------------------------
@@ -2250,9 +2249,8 @@ PERLND, 905,PWATER ,UZS  ,   5,1951   ,2001 ,yearly
             if len(row) == 0:
                 continue
             nrow = [i.strip() for i in row]
-            ndict.append(
-                (nrow[0], int(nrow[1]), nrow[2], nrow[3], interval2codemap[nrow[7]])
-            )
+            ndict.append((nrow[0], int(nrow[1]), nrow[2], nrow[3],
+                          interval2codemap[nrow[7]]))
         self.ncatalog = sorted(ndict)
 
     def test_catalog_api(self):
@@ -2263,7 +2261,7 @@ PERLND, 905,PWATER ,UZS  ,   5,1951   ,2001 ,yearly
     def test_catalog_cli(self):
         args = "hspfbintoolbox catalog --tablefmt csv tests/6b_np1.hbn"
         args = shlex.split(args)
-        out = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stdin=subprocess.PIPE
-        ).communicate()[0]
+        out = subprocess.Popen(args,
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE).communicate()[0]
         self.assertEqual(out, self.catalog)

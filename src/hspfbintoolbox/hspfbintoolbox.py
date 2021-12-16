@@ -28,9 +28,9 @@ interval2codemap = {"yearly": 5, "monthly": 4, "daily": 3, "bivl": 2}
 
 code2freqmap = {5: "A", 4: "M", 3: "D", 2: None}
 
-
 _LOCAL_DOCSTRINGS = {
-    "hbnfilename": r"""hbnfilename: str
+    "hbnfilename":
+    r"""hbnfilename: str
         The HSPF binary output file.  This file must have been created from
         a completed model run."""
 }
@@ -40,9 +40,8 @@ def tupleMatch(a, b):
     """Part of partial ordered matching.
     See http://stackoverflow.com/a/4559604
     """
-    return len(a) == len(b) and all(
-        i is None or j is None or i == j for i, j in zip(a, b)
-    )
+    return len(a) == len(b) and all(i is None or j is None or i == j
+                                    for i, j in zip(a, b))
 
 
 def tupleCombine(a, b):
@@ -56,14 +55,14 @@ def tupleSearch(findme, haystack):
     """Partial ordered matching with 'None' as wildcard
     See http://stackoverflow.com/a/4559604
     """
-    return [
-        (i, tupleCombine(findme, h))
-        for i, h in enumerate(haystack)
-        if tupleMatch(findme, h)
-    ]
+    return [(i, tupleCombine(findme, h)) for i, h in enumerate(haystack)
+            if tupleMatch(findme, h)]
 
 
-def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
+def _get_data(binfilename,
+              interval="daily",
+              labels=[",,,"],
+              catalog_only=True):
     """Underlying function to read from the binary file.  Used by
     'extract', 'catalog', and 'dump'.
     """
@@ -120,14 +119,9 @@ def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
         words = [lindex] + label.split(",")
         if len(words) != 5:
             raise ValueError(
-                tsutils.error_wrapper(
-                    """
+                tsutils.error_wrapper("""
 The label '{}' has the wrong number of entries.
-""".format(
-                        label
-                    )
-                )
-            )
+""".format(label)))
 
         words = [None if i == "" else i for i in words]
 
@@ -135,15 +129,10 @@ The label '{}' has the wrong number of entries.
             words[1] = words[1].upper()
             if words[1] not in testem.keys():
                 raise ValueError(
-                    tsutils.error_wrapper(
-                        """
+                    tsutils.error_wrapper("""
 Operation type must be one of 'PERLND', 'IMPLND', 'RCHRES', or 'BMPRAC',
 or missing (to get all) instead of {}.
-""".format(
-                            words[1]
-                        )
-                    )
-                )
+""".format(words[1])))
 
         if words[2] is not None:
             try:
@@ -152,30 +141,20 @@ or missing (to get all) instead of {}.
                     raise ValueError()
             except (ValueError, TypeError):
                 raise ValueError(
-                    tsutils.error_wrapper(
-                        """
+                    tsutils.error_wrapper("""
 The land use element must be an integer from 1 to 999 inclusive,
 instead of {}.
-""".format(
-                            words[2]
-                        )
-                    )
-                )
+""".format(words[2])))
 
         if words[3] is not None:
             words[3] = words[3].upper()
             if words[3] not in testem[words[1]]:
                 raise ValueError(
-                    tsutils.error_wrapper(
-                        """
+                    tsutils.error_wrapper("""
 The {} operation type only allows the variable groups:
 {},
 instead you gave {}.
-""".format(
-                            words[1], testem[words[1]][:-1], words[3]
-                        )
-                    )
-                )
+""".format(words[1], testem[words[1]][:-1], words[3])))
 
         words.append(intervalcode)
         lablist.append(words)
@@ -192,12 +171,14 @@ instead you gave {}.
         fl.read(1)
         while True:
             try:
-                reclen1, reclen2, reclen3, reclen = struct.unpack("4B", fl.read(4))
+                reclen1, reclen2, reclen3, reclen = struct.unpack(
+                    "4B", fl.read(4))
             except struct.error:
                 # End of file.
                 break
 
-            rectype, optype, lue, section = struct.unpack("I8sI8s", fl.read(24))
+            rectype, optype, lue, section = struct.unpack(
+                "I8sI8s", fl.read(24))
 
             rectype = int(rectype)
             lue = int(lue)
@@ -213,26 +194,23 @@ instead you gave {}.
                 while slen < reclen:
                     length = struct.unpack("I", fl.read(4))[0]
                     slen = slen + length + 4
-                    variable_name = struct.unpack(
-                        "{}s".format(length), fl.read(length)
-                    )[0]
+                    variable_name = struct.unpack("{}s".format(length),
+                                                  fl.read(length))[0]
                     vnames.setdefault((lue, section), []).append(variable_name)
 
             elif rectype == 1:
                 # Data record
                 numvals = len(vnames[(lue, section)])
 
-                (_, level, year, month, day, hour, minute) = struct.unpack(
-                    "7I", fl.read(28)
-                )
+                (_, level, year, month, day, hour,
+                 minute) = struct.unpack("7I", fl.read(28))
 
-                vals = struct.unpack("{}f".format(numvals), fl.read(4 * numvals))
+                vals = struct.unpack("{}f".format(numvals),
+                                     fl.read(4 * numvals))
                 if hour == 24:
-                    ndate = (
-                        datetime.datetime(year, month, day)
-                        + datetime.timedelta(hours=24)
-                        + datetime.timedelta(minutes=minute)
-                    )
+                    ndate = (datetime.datetime(year, month, day) +
+                             datetime.timedelta(hours=24) +
+                             datetime.timedelta(minutes=minute))
                 else:
                     ndate = datetime.datetime(year, month, day, hour, minute)
 
@@ -248,7 +226,7 @@ instead you gave {}.
                     if catalog_only is False:
                         res = tupleSearch(tmpkey, lablist)
                         if res:
-                            nres = (res[0][0],) + res[0][1][1:]
+                            nres = (res[0][0], ) + res[0][1][1:]
                             labeltest[nres[0]] = 1
                             collect_dict.setdefault(nres, []).append(vals[i])
                             ndates.setdefault(level, {})[ndate] = 1
@@ -270,16 +248,11 @@ instead you gave {}.
 
     if not collect_dict:
         raise ValueError(
-            tsutils.error_wrapper(
-                """
+            tsutils.error_wrapper("""
 The label specifications below matched no records in the binary file.
 
 {lablist}
-""".format(
-                    **locals()
-                )
-            )
-        )
+""".format(**locals())))
 
     if catalog_only is False:
         not_in_file = []
@@ -288,15 +261,10 @@ The label specifications below matched no records in the binary file.
                 not_in_file.append(labels[loopcnt])
         if not_in_file:
             warnings.warn(
-                tsutils.error_wrapper(
-                    """
+                tsutils.error_wrapper("""
 The specification{} {}
 matched no records in the binary file.
-""".format(
-                        "s"[len(not_in_file) == 1 :], not_in_file
-                    )
-                )
-            )
+""".format("s"[len(not_in_file) == 1:], not_in_file)))
 
     return ndates, collect_dict
 
@@ -375,12 +343,8 @@ def extract_cli(hbnfilename, interval, *labels, **kwds):
 
 
 @typic.al
-def extract(
-    hbnfilename: str,
-    interval: Literal["yearly", "monthly", "daily", "BIVL"],
-    *labels,
-    **kwds
-):
+def extract(hbnfilename: str, interval: Literal["yearly", "monthly", "daily",
+                                                "BIVL"], *labels, **kwds):
     r"""Returns a DataFrame from a HSPF binary output file."""
     try:
         time_stamp = kwds.pop("time_stamp")
@@ -388,15 +352,10 @@ def extract(
         time_stamp = "begin"
     if time_stamp not in ["begin", "end"]:
         raise ValueError(
-            tsutils.error_wrapper(
-                """
+            tsutils.error_wrapper("""
 The "time_stamp" optional keyword must be either
 "begin" or "end".  You gave {}.
-""".format(
-                    time_stamp
-                )
-            )
-        )
+""".format(time_stamp)))
 
     try:
         sortall = bool(kwds.pop("sorted"))
@@ -404,41 +363,26 @@ The "time_stamp" optional keyword must be either
         sortall = False
     if not (sortall is True or sortall is False):
         raise ValueError(
-            tsutils.error_wrapper(
-                """
+            tsutils.error_wrapper("""
 The "sorted" optional keyword must be either
 True or False.  You gave {}.
-""".format(
-                    sortall
-                )
-            )
-        )
+""".format(sortall)))
 
     if len(kwds) > 0:
         raise ValueError(
-            tsutils.error_wrapper(
-                """
+            tsutils.error_wrapper("""
 The extract command only accepts optional keywords 'time_stamp' and
 'sorted'.  You gave {}.
-""".format(
-                    list(kwds.keys())
-                )
-            )
-        )
+""".format(list(kwds.keys()))))
 
     interval = interval.lower()
     if interval not in ["bivl", "daily", "monthly", "yearly"]:
         raise ValueError(
-            tsutils.error_wrapper(
-                """
+            tsutils.error_wrapper("""
 The "interval" argument must be one of "bivl",
 "daily", "monthly", or "yearly".  You supplied
 "{}".
-""".format(
-                    interval
-                )
-            )
-        )
+""".format(interval)))
 
     index, data = _get_data(hbnfilename, interval, labels, catalog_only=False)
     index = index[interval2codemap[interval]]
@@ -450,10 +394,9 @@ The "interval" argument must be one of "bivl",
         skeys.sort()
 
     result = pd.DataFrame(
-        pd.concat(
-            [pd.Series(data[i], index=index) for i in skeys], sort=False, axis=1
-        ).reindex(pd.Index(index))
-    )
+        pd.concat([pd.Series(data[i], index=index) for i in skeys],
+                  sort=False,
+                  axis=1).reindex(pd.Index(index)))
     columns = ["{}_{}_{}_{}".format(i[1], i[2], i[4], i[5]) for i in skeys]
     result.columns = columns
 
@@ -498,7 +441,7 @@ def catalog(hbnfilename: str):
     catkeys = sorted(catlog.keys())
     result = []
     for cat in catkeys:
-        result.append(cat + catlog[cat] + (code2intervalmap[cat[-1]],))
+        result.append(cat + catlog[cat] + (code2intervalmap[cat[-1]], ))
     return result
 
 
@@ -531,24 +474,18 @@ def dump(hbnfilename: str, time_stamp: Literal["begin", "end"] = "begin"):
     """
     if time_stamp not in ["begin", "end"]:
         raise ValueError(
-            tsutils.error_wrapper(
-                """
+            tsutils.error_wrapper("""
 The "time_stamp" optional keyword must be either
 "begin" or "end".  You gave {}.
-""".format(
-                    time_stamp
-                )
-            )
-        )
+""".format(time_stamp)))
 
     index, data = _get_data(hbnfilename, None, [",,,"], catalog_only=False)
     skeys = sorted(data.keys())
 
     result = pd.DataFrame(
-        pd.concat(
-            [pd.Series(data[i], index=index) for i in skeys], sort=False, axis=1
-        ).reindex(pd.Index(index))
-    )
+        pd.concat([pd.Series(data[i], index=index) for i in skeys],
+                  sort=False,
+                  axis=1).reindex(pd.Index(index)))
 
     columns = ["{}_{}_{}_{}".format(i[1], i[2], i[4], i[5]) for i in skeys]
     result.columns = columns

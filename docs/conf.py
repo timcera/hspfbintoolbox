@@ -25,7 +25,9 @@ import os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.doctest", "sphinxcontrib.programoutput"]
+extensions = [
+    "sphinx.ext.autodoc", "sphinx.ext.doctest", "sphinxcontrib.programoutput"
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -85,7 +87,6 @@ pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
-
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -166,29 +167,26 @@ html_static_path = ["_static"]
 # Output file base name for HTML help builder.
 htmlhelp_basename = "hspfbintoolboxdoc"
 
-
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    #'papersize': 'letterpaper',
+    # 'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').
-    #'pointsize': '10pt',
+    # 'pointsize': '10pt',
     # Additional stuff for the LaTeX preamble.
-    #'preamble': '',
+    # 'preamble': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [
-    (
-        "index",
-        "hspfbintoolbox.tex",
-        "hspfbintoolbox Documentation",
-        "Tim Cera, P.E.",
-        "manual",
-    )
-]
+latex_documents = [(
+    "index",
+    "hspfbintoolbox.tex",
+    "hspfbintoolbox Documentation",
+    "Tim Cera, P.E.",
+    "manual",
+)]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -210,35 +208,30 @@ latex_documents = [
 # If false, no module index is generated.
 # latex_domain_indices = True
 
-
 # -- Options for manual page output --------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ("index", "hspfbintoolbox", "hspfbintoolbox Documentation", ["Tim Cera, P.E."], 1)
-]
+man_pages = [("index", "hspfbintoolbox", "hspfbintoolbox Documentation",
+              ["Tim Cera, P.E."], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
-
 
 # -- Options for Texinfo output ------------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
-texinfo_documents = [
-    (
-        "index",
-        "hspfbintoolbox",
-        "hspfbintoolbox Documentation",
-        "Tim Cera, P.E.",
-        "hspfbintoolbox",
-        "One line description of project.",
-        "Miscellaneous",
-    )
-]
+texinfo_documents = [(
+    "index",
+    "hspfbintoolbox",
+    "hspfbintoolbox Documentation",
+    "Tim Cera, P.E.",
+    "hspfbintoolbox",
+    "One line description of project.",
+    "Miscellaneous",
+)]
 
 # Documents to append as an appendix to all manuals.
 # texinfo_appendices = []

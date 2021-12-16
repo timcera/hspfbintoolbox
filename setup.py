@@ -17,7 +17,8 @@ version = open("VERSION").readline().strip()
 if sys.argv[-1] == "publish":
     os.system("cleanpy .")
     os.system("python setup.py sdist")
-    os.system("twine upload dist/{pkg_name}-{version}.tar.gz".format(**locals()))
+    os.system(
+        "twine upload dist/{pkg_name}-{version}.tar.gz".format(**locals()))
     sys.exit()
 
 README = open("README.rst").read()
@@ -53,9 +54,8 @@ extras_require = {
 setup(
     name=pkg_name,
     version=version,
-    description=(
-        "Reads Hydrological Simulation Program - " "FORTRAN binary output files."
-    ),
+    description=("Reads Hydrological Simulation Program - "
+                 "FORTRAN binary output files."),
     long_description=README,
     classifiers=[
         # Get strings from
@@ -78,7 +78,8 @@ setup(
     keywords="hspf binary hydrologic simulation model",
     author="Tim Cera, P.E.",
     author_email="tim@cerazone.net",
-    url="http://timcera.bitbucket.io/{pkg_name}/docs/index.html".format(**locals()),
+    url="http://timcera.bitbucket.io/{pkg_name}/docs/index.html".format(
+        **locals()),
     license="BSD",
     packages=find_packages("src"),
     package_dir={"": "src"},
@@ -88,7 +89,8 @@ setup(
     install_requires=install_requires,
     extras_require=extras_require,
     entry_points={
-        "console_scripts": ["{pkg_name}={pkg_name}.{pkg_name}:main".format(**locals())]
+        "console_scripts":
+        ["{pkg_name}={pkg_name}.{pkg_name}:main".format(**locals())]
     },
     test_suite="tests",
     python_requires=">=3.7.1",
