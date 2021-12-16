@@ -63,10 +63,12 @@ def tupleSearch(findme, haystack):
     ]
 
 
-def _get_data(binfilename, interval="daily", labels=[",,,"], catalog_only=True):
+def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
     """Underlying function to read from the binary file.  Used by
     'extract', 'catalog', and 'dump'.
     """
+    if labels is None:
+        labels = [",,,"]
     testem = {
         "PERLND": [
             "ATEMP",
