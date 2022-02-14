@@ -310,7 +310,7 @@ def extract_cli(hbnfilename, interval, *labels, **kwds):
 
     Parameters
     ----------
-    {hbnfilename}
+    ${hbnfilename}
 
     interval: str
         One of 'yearly', 'monthly', 'daily', or 'BIVL'.  The 'BIVL' option is
@@ -479,9 +479,9 @@ def catalog_cli(hbnfilename, tablefmt="simple", header="default"):
 
     Parameters
     ----------
-    {hbnfilename}
-    {tablefmt}
-    {header}
+    ${hbnfilename}
+    ${tablefmt}
+    ${header}
 
     """
     if header == "default":
@@ -512,7 +512,7 @@ def dump_cli(hbnfilename, time_stamp="begin"):
 
     Parameters
     ----------
-    {hbnfilename}
+    ${hbnfilename}
 
     time_stamp
         [optional, default is 'begin']
