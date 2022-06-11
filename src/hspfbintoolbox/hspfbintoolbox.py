@@ -3,7 +3,6 @@
 hspfbintoolbox to read HSPF binary files.
 """
 
-from __future__ import print_function
 
 import datetime
 import os
@@ -123,11 +122,9 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
         if len(words) != 5:
             raise ValueError(
                 tsutils.error_wrapper(
-                    """
-The label '{}' has the wrong number of entries.
-""".format(
-                        label
-                    )
+                    f"""
+The label '{label}' has the wrong number of entries.
+"""
                 )
             )
 
@@ -138,12 +135,10 @@ The label '{}' has the wrong number of entries.
             if words[1] not in testem.keys():
                 raise ValueError(
                     tsutils.error_wrapper(
-                        """
+                        f"""
 Operation type must be one of 'PERLND', 'IMPLND', 'RCHRES', or 'BMPRAC',
-or missing (to get all) instead of {}.
-""".format(
-                            words[1]
-                        )
+or missing (to get all) instead of {words[1]}.
+"""
                     )
                 )
 
@@ -155,12 +150,10 @@ or missing (to get all) instead of {}.
             except (ValueError, TypeError):
                 raise ValueError(
                     tsutils.error_wrapper(
-                        """
+                        f"""
 The land use element must be an integer from 1 to 999 inclusive,
-instead of {}.
-""".format(
-                            words[2]
-                        )
+instead of {words[2]}.
+"""
                     )
                 )
 
@@ -169,13 +162,11 @@ instead of {}.
             if words[3] not in testem[words[1]]:
                 raise ValueError(
                     tsutils.error_wrapper(
-                        """
-The {} operation type only allows the variable groups:
-{},
-instead you gave {}.
-""".format(
-                            words[1], testem[words[1]][:-1], words[3]
-                        )
+                        f"""
+The {words[1]} operation type only allows the variable groups:
+{testem[words[1]][:-1]},
+instead you gave {words[3]}.
+"""
                     )
                 )
 
@@ -215,9 +206,7 @@ instead you gave {}.
                 while slen < reclen:
                     length = struct.unpack("I", fl.read(4))[0]
                     slen = slen + length + 4
-                    variable_name = struct.unpack(
-                        "{}s".format(length), fl.read(length)
-                    )[0]
+                    variable_name = struct.unpack(f"{length}s", fl.read(length))[0]
                     vnames.setdefault((lue, section), []).append(variable_name)
 
             elif rectype == 1:
@@ -228,7 +217,7 @@ instead you gave {}.
                     "7I", fl.read(28)
                 )
 
-                vals = struct.unpack("{}f".format(numvals), fl.read(4 * numvals))
+                vals = struct.unpack(f"{numvals}f", fl.read(4 * numvals))
                 if hour == 24:
                     ndate = (
                         datetime.datetime(year, month, day)
@@ -273,13 +262,11 @@ instead you gave {}.
     if not collect_dict:
         raise ValueError(
             tsutils.error_wrapper(
-                """
+                f"""
 The label specifications below matched no records in the binary file.
 
 {lablist}
-""".format(
-                    **locals()
-                )
+"""
             )
         )
 
@@ -291,12 +278,10 @@ The label specifications below matched no records in the binary file.
         if not_in_file:
             warnings.warn(
                 tsutils.error_wrapper(
-                    """
-The specification{} {}
+                    f"""
+The specification{'s'[len(not_in_file) == 1:]} {not_in_file}
 matched no records in the binary file.
-""".format(
-                        "s"[len(not_in_file) == 1 :], not_in_file
-                    )
+"""
                 )
             )
 
@@ -381,7 +366,7 @@ def extract(
     hbnfilename: str,
     interval: Literal["yearly", "monthly", "daily", "BIVL"],
     *labels,
-    **kwds
+    **kwds,
 ):
     r"""Returns a DataFrame from a HSPF binary output file."""
     try:
@@ -391,12 +376,10 @@ def extract(
     if time_stamp not in ["begin", "end"]:
         raise ValueError(
             tsutils.error_wrapper(
-                """
+                f"""
 The "time_stamp" optional keyword must be either
-"begin" or "end".  You gave {}.
-""".format(
-                    time_stamp
-                )
+"begin" or "end".  You gave {time_stamp}.
+"""
             )
         )
 
@@ -407,24 +390,20 @@ The "time_stamp" optional keyword must be either
     if not (sortall is True or sortall is False):
         raise ValueError(
             tsutils.error_wrapper(
-                """
+                f"""
 The "sorted" optional keyword must be either
-True or False.  You gave {}.
-""".format(
-                    sortall
-                )
+True or False.  You gave {sortall}.
+"""
             )
         )
 
     if len(kwds) > 0:
         raise ValueError(
             tsutils.error_wrapper(
-                """
+                f"""
 The extract command only accepts optional keywords 'time_stamp' and
-'sorted'.  You gave {}.
-""".format(
-                    list(kwds.keys())
-                )
+'sorted'.  You gave {list(kwds.keys())}.
+"""
             )
         )
 
@@ -432,13 +411,11 @@ The extract command only accepts optional keywords 'time_stamp' and
     if interval not in ["bivl", "daily", "monthly", "yearly"]:
         raise ValueError(
             tsutils.error_wrapper(
-                """
+                f"""
 The "interval" argument must be one of "bivl",
 "daily", "monthly", or "yearly".  You supplied
-"{}".
-""".format(
-                    interval
-                )
+"{interval}".
+"""
             )
         )
 
@@ -456,7 +433,7 @@ The "interval" argument must be one of "bivl",
             [pd.Series(data[i], index=index) for i in skeys], sort=False, axis=1
         ).reindex(pd.Index(index))
     )
-    columns = ["{}_{}_{}_{}".format(i[1], i[2], i[4], i[5]) for i in skeys]
+    columns = [f"{i[1]}_{i[2]}_{i[4]}_{i[5]}" for i in skeys]
     result.columns = columns
 
     if time_stamp == "begin":
@@ -534,12 +511,10 @@ def dump(hbnfilename: str, time_stamp: Literal["begin", "end"] = "begin"):
     if time_stamp not in ["begin", "end"]:
         raise ValueError(
             tsutils.error_wrapper(
-                """
+                f"""
 The "time_stamp" optional keyword must be either
-"begin" or "end".  You gave {}.
-""".format(
-                    time_stamp
-                )
+"begin" or "end".  You gave {time_stamp}.
+"""
             )
         )
 
@@ -552,7 +527,7 @@ The "time_stamp" optional keyword must be either
         ).reindex(pd.Index(index))
     )
 
-    columns = ["{}_{}_{}_{}".format(i[1], i[2], i[4], i[5]) for i in skeys]
+    columns = [f"{i[1]}_{i[2]}_{i[4]}_{i[5]}" for i in skeys]
     result.columns = columns
 
     if time_stamp == "begin":

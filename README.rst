@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/timcera/hspfbintoolbox.svg?branch=master
-    :target: https://travis-ci.org/timcera/hspfbintoolbox
+.. image:: https://github.com/timcera/hspfbintoolbox/actions/workflows/python-package.yml/badge.svg
+    :target: https://github.com/timcera/hspfbintoolbox/actions/workflows/python-package.yml
     :height: 20
 
 .. image:: https://coveralls.io/repos/timcera/hspfbintoolbox/badge.png?branch=master
@@ -11,7 +11,11 @@
     :target: https://pypi.python.org/pypi/hspfbintoolbox
 
 .. image:: http://img.shields.io/badge/license-BSD-lightgrey.svg
-    :alt: hspfbintoolbox license
+    :alt: BSD-3 clause license
+    :target: https://pypi.python.org/pypi/hspfbintoolbox/
+
+.. image:: http://img.shields.io/pypi/dd/hspfbintoolbox.svg
+    :alt: hspfbintoolbox downloads
     :target: https://pypi.python.org/pypi/hspfbintoolbox/
 
 Documentation for hspfbintoolbox
