@@ -218,27 +218,28 @@ instead you gave {words[3]}.
                 )
 
                 vals = struct.unpack(f"{numvals}f", fl.read(4 * numvals))
-                if hour == 24:
-                    ndate = (
+                ndate = (
+                    (
                         datetime.datetime(year, month, day)
                         + datetime.timedelta(hours=24)
                         + datetime.timedelta(minutes=minute)
                     )
-                else:
-                    ndate = datetime.datetime(year, month, day, hour, minute)
+                    if hour == 24
+                    else datetime.datetime(year, month, day, hour, minute)
+                )
 
                 for i, vname in enumerate(vnames[(lue, section)]):
                     tmpkey = (
                         None,
                         optype.decode("ascii"),
-                        int(lue),
+                        lue,
                         section.decode("ascii"),
                         vname.decode("ascii"),
                         level,
                     )
+
                     if catalog_only is False:
-                        res = tupleSearch(tmpkey, lablist)
-                        if res:
+                        if res := tupleSearch(tmpkey, lablist):
                             nres = (res[0][0],) + res[0][1][1:]
                             labeltest[nres[0]] = 1
                             collect_dict.setdefault(nres, []).append(vals[i])
@@ -271,11 +272,11 @@ The label specifications below matched no records in the binary file.
         )
 
     if catalog_only is False:
-        not_in_file = []
-        for loopcnt in list(range(len(lablist))):
-            if loopcnt not in labeltest.keys():
-                not_in_file.append(labels[loopcnt])
-        if not_in_file:
+        if not_in_file := [
+            labels[loopcnt]
+            for loopcnt in list(range(len(lablist)))
+            if loopcnt not in labeltest.keys()
+        ]:
             warnings.warn(
                 tsutils.error_wrapper(
                     f"""
@@ -387,16 +388,6 @@ The "time_stamp" optional keyword must be either
         sortall = bool(kwds.pop("sorted"))
     except KeyError:
         sortall = False
-    if not (sortall is True or sortall is False):
-        raise ValueError(
-            tsutils.error_wrapper(
-                f"""
-The "sorted" optional keyword must be either
-True or False.  You gave {sortall}.
-"""
-            )
-        )
-
     if len(kwds) > 0:
         raise ValueError(
             tsutils.error_wrapper(
@@ -423,7 +414,7 @@ The "interval" argument must be one of "bivl",
     index = index[interval2codemap[interval]]
     index = sorted(index.keys())
     skeys = list(data.keys())
-    if sortall is True:
+    if sortall:
         skeys.sort(key=lambda tup: tup[1:])
     else:
         skeys.sort()
@@ -475,10 +466,7 @@ def catalog(hbnfilename: str):
     # PERLND  905  PWATER  TAET  5  1951  2001  yearly
     catlog = _get_data(hbnfilename, None, [",,,"], catalog_only=True)[1]
     catkeys = sorted(catlog.keys())
-    result = []
-    for cat in catkeys:
-        result.append(cat + catlog[cat] + (code2intervalmap[cat[-1]],))
-    return result
+    return [cat + catlog[cat] + (code2intervalmap[cat[-1]],) for cat in catkeys]
 
 
 @mando.command("dump", formatter_class=RSTHelpFormatter, doctype="numpy")
