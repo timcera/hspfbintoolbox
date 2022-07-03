@@ -239,7 +239,8 @@ instead you gave {words[3]}.
                     )
 
                     if catalog_only is False:
-                        if res := tupleSearch(tmpkey, lablist):
+                        res = tupleSearch(tmpkey, lablist)
+                        if res:
                             nres = (res[0][0],) + res[0][1][1:]
                             labeltest[nres[0]] = 1
                             collect_dict.setdefault(nres, []).append(vals[i])
@@ -272,11 +273,12 @@ The label specifications below matched no records in the binary file.
         )
 
     if catalog_only is False:
-        if not_in_file := [
+        not_in_file = [
             labels[loopcnt]
             for loopcnt in list(range(len(lablist)))
             if loopcnt not in labeltest.keys()
-        ]:
+        ]
+        if not_in_file:
             warnings.warn(
                 tsutils.error_wrapper(
                     f"""
