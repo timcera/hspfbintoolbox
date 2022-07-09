@@ -1,3 +1,14 @@
+## v7.0.1 (2022-07-09)
+
+### Fix
+
+- **extract**: fixed keywords in extract
+- removed walrus operator so supports python 3.7
+
+### Refactor
+
+- removed __future__ and some addition f strings
+
 ## v7.0.0 (2022-02-14)
 
 ## v6.4.1 (2022-02-07)
