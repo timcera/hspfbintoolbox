@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shlex
+import subprocess
 import sys
 
 from setuptools import find_packages, setup
@@ -15,9 +17,11 @@ pkg_name = "hspfbintoolbox"
 version = open("VERSION").readline().strip()
 
 if sys.argv[-1] == "publish":
-    os.system("cleanpy .")
-    os.system("python setup.py sdist")
-    os.system(f"twine upload dist/{pkg_name}-{version}.tar.gz")
+    subprocess.run(shlex.split("cleanpy ."), check=True)
+    subprocess.run(shlex.split("python setup.py sdist"), check=True)
+    subprocess.run(
+        shlex.split(f"twine upload dist/{pkg_name}-{version}.tar.gz"), check=True
+    )
     sys.exit()
 
 README = open("README.rst").read()
@@ -27,6 +31,7 @@ install_requires = [
     # For more details, see:
     # http://packages.python.org/distribute/setuptools.html#declaring-dependencies
     "tstoolbox > 103.16.1",
+    "cltoolbox > 1.1.0",
 ]
 
 extras_require = {

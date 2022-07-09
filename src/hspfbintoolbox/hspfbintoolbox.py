@@ -15,10 +15,10 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-import mando
+import cltoolbox
 import pandas as pd
 import typic
-from mando.rst_text_formatter import RSTHelpFormatter
+from cltoolbox.rst_text_formatter import RSTHelpFormatter
 from tstoolbox import tsutils
 
 code2intervalmap = {5: "yearly", 4: "monthly", 3: "daily", 2: "bivl"}
@@ -291,9 +291,9 @@ matched no records in the binary file.
     return ndates, collect_dict
 
 
-@mando.command("extract", formatter_class=RSTHelpFormatter, doctype="numpy")
+@cltoolbox.command("extract", formatter_class=RSTHelpFormatter)
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
-def extract_cli(hbnfilename, interval, *labels, **kwds):
+def extract_cli(hbnfilename, interval, time_stamp="begin", sort_columns=False, *labels):
     r"""Prints out data to the screen from a HSPF binary output file.
 
     Parameters
@@ -345,23 +345,28 @@ def extract_cli(hbnfilename, interval, *labels, **kwds):
             have to leave VARIABLEGROUP as a wild card.  For example,
             'BMPRAC,875,,RMVOL'.
 
-    kwds:
-        Current the allowable keywords are 'time_stamp' and
-        'sorted'.
-
-        time_stamp:
+    time_stamp:
         [optional, default is 'begin']
 
         For the interval defines the location of the time stamp. If set to
         'begin', the time stamp is at the beginning of the interval.  If set to
         any other string, the reported time stamp will represent the end of the
-        interval.  Place after ALL labels.
+        interval.
 
-        sorted:
+    sort_columns:
         [optional, default is False]
 
-        Should ALL columns be sorted?  Place after ALL labels."""
-    tsutils._printiso(extract(hbnfilename, interval, *labels, **kwds))
+        If set to False will maintain the columns order of the labels.  If set
+        to True will sort all columns by their columns names."""
+    tsutils.printiso(
+        extract(
+            hbnfilename,
+            interval,
+            *labels,
+            time_stamp=time_stamp,
+            sort_columns=sort_columns,
+        )
+    )
 
 
 @typic.al
@@ -369,37 +374,10 @@ def extract(
     hbnfilename: str,
     interval: Literal["yearly", "monthly", "daily", "BIVL"],
     *labels,
-    **kwds,
+    time_stamp: Literal["begin", "end"] = "begin",
+    sort_columns: bool = False,
 ):
     r"""Returns a DataFrame from a HSPF binary output file."""
-    try:
-        time_stamp = kwds.pop("time_stamp")
-    except KeyError:
-        time_stamp = "begin"
-    if time_stamp not in ["begin", "end"]:
-        raise ValueError(
-            tsutils.error_wrapper(
-                f"""
-The "time_stamp" optional keyword must be either
-"begin" or "end".  You gave {time_stamp}.
-"""
-            )
-        )
-
-    try:
-        sortall = bool(kwds.pop("sorted"))
-    except KeyError:
-        sortall = False
-    if len(kwds) > 0:
-        raise ValueError(
-            tsutils.error_wrapper(
-                f"""
-The extract command only accepts optional keywords 'time_stamp' and
-'sorted'.  You gave {list(kwds.keys())}.
-"""
-            )
-        )
-
     interval = interval.lower()
     if interval not in ["bivl", "daily", "monthly", "yearly"]:
         raise ValueError(
@@ -416,7 +394,7 @@ The "interval" argument must be one of "bivl",
     index = index[interval2codemap[interval]]
     index = sorted(index.keys())
     skeys = list(data.keys())
-    if sortall:
+    if sort_columns:
         skeys.sort(key=lambda tup: tup[1:])
     else:
         skeys.sort()
@@ -438,7 +416,7 @@ The "interval" argument must be one of "bivl",
     return result
 
 
-@mando.command("catalog", formatter_class=RSTHelpFormatter, doctype="numpy")
+@cltoolbox.command("catalog", formatter_class=RSTHelpFormatter)
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
 def catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     """
@@ -456,7 +434,7 @@ def catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     """
     if header == "default":
         header = ["LUE", "LC", "GROUP", "VAR", "TC", "START", "END", "TC"]
-    tsutils._printiso(catalog(hbnfilename), tablefmt=tablefmt, headers=header)
+    tsutils.printiso(catalog(hbnfilename), tablefmt=tablefmt, headers=header)
 
 
 @typic.al
@@ -471,7 +449,7 @@ def catalog(hbnfilename: str):
     return [cat + catlog[cat] + (code2intervalmap[cat[-1]],) for cat in catkeys]
 
 
-@mando.command("dump", formatter_class=RSTHelpFormatter, doctype="numpy")
+@cltoolbox.command("dump", formatter_class=RSTHelpFormatter)
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
 def dump_cli(hbnfilename, time_stamp="begin"):
     """
@@ -487,10 +465,10 @@ def dump_cli(hbnfilename, time_stamp="begin"):
         For the interval defines the location of the time stamp. If set
         to 'begin', the time stamp is at the begining of the interval.
         If set to any other string, the reported time stamp will
-        represent the end of the interval.  Default is 'begin'.Z
+        represent the end of the interval.  Default is 'begin'.
 
     """
-    tsutils._printiso(dump(hbnfilename, time_stamp=time_stamp))
+    tsutils.printiso(dump(hbnfilename, time_stamp=time_stamp))
 
 
 @typic.al
@@ -527,22 +505,16 @@ The "time_stamp" optional keyword must be either
     return result
 
 
-@mando.command()
+@cltoolbox.command()
 def about():
     """Display version number and system information."""
     tsutils.about(__name__)
 
 
-@mando.command
-def time_series(hbnfilename, interval, *labels, **kwds):
-    """DEPRECATED: Use 'extract' instead."""
-    return extract(hbnfilename, interval, *labels, **kwds)
-
-
 def main():
     if not os.path.exists("debug_hspfbintoolbox"):
         sys.tracebacklimit = 0
-    mando.main()
+    cltoolbox.main()
 
 
 if __name__ == "__main__":
