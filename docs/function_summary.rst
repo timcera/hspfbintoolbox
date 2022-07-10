@@ -10,4 +10,3 @@ Python API Function Summary
     hspfbintoolbox.hspfbintoolbox.catalog
     hspfbintoolbox.hspfbintoolbox.dump
     hspfbintoolbox.hspfbintoolbox.extract
-    hspfbintoolbox.hspfbintoolbox.time_series

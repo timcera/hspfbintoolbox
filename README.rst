@@ -55,9 +55,6 @@ Just run 'hspfbintoolbox' to get a list of subcommands:
  extract
           Prints out data to the screen from a HSPF binary output file.
 
- time_series
-          DEPRECATED: Use 'extract' instead.
-
 The default for all of the subcommands is to accept data from stdin
 (typically a pipe).  If a subcommand accepts an input file for an argument,
 you can use "--infile=filename", or to explicitly specify from stdin use

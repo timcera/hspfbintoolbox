@@ -14,7 +14,3 @@ dump
 extract
 ~~~~~~~
 .. program-output:: hspfbintoolbox extract --help
-
-time_series
-~~~~~~~~~~~
-.. program-output:: hspfbintoolbox time_series --help
