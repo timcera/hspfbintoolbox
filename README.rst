@@ -37,28 +37,19 @@ Requirements
 
 Installation
 ------------
-Should be as easy as running ``pip install hspfbintoolbox`` or ``easy_install
-hspfbintoolbox`` at any command line.  Not sure on Windows whether this will
-bring in pandas but as mentioned above, if you start with Python(x,y) then
-you won't have a problem.
+Should be as easy as running ``pip install hspfbintoolbox`` at any command
+line.  Not sure on Windows whether this will bring in pandas but as mentioned
+above, if you start with Python(x,y) then you won't have a problem.
 
 Usage - Command Line
 --------------------
-Just run 'hspfbintoolbox' to get a list of subcommands:
+Just run 'hspfbintoolbox --help' to get a list of subcommands:
 
  catalog
           Prints out a catalog of data sets in the binary file.
 
- dump
-          Prints out ALL data from a HSPF binary output file.
-
  extract
           Prints out data to the screen from a HSPF binary output file.
-
-The default for all of the subcommands is to accept data from stdin
-(typically a pipe).  If a subcommand accepts an input file for an argument,
-you can use "--infile=filename", or to explicitly specify from stdin use
-"--infile='-'" .
 
 For the subcommands that output data it is printed to the screen and you can
 then redirect to a file.
@@ -75,7 +66,7 @@ Simply import hspfbintoolbox::
     import hspfbintoolbox
 
     # Then you could call the functions
-    ntsd = hspfbintoolbox.dump('tests/test.hbn')
+    ntsd = hspfbintoolbox.extract('tests/test.hbn', 'yearly', ',905,,AGWS')
 
     # Once you have a PANDAS DataFrame you can use that as input.
     ntsd = tstoolbox.aggregate(statistic='mean', agg_interval='daily', input_ts=ntsd)

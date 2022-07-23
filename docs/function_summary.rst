@@ -8,5 +8,4 @@ Python API Function Summary
 
     hspfbintoolbox.hspfbintoolbox.about
     hspfbintoolbox.hspfbintoolbox.catalog
-    hspfbintoolbox.hspfbintoolbox.dump
     hspfbintoolbox.hspfbintoolbox.extract

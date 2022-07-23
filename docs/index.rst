@@ -6,7 +6,7 @@ hspfbintoolbox
 ==============
 
 This is the home page for `hspfbintoolbox`.  The `hspfbintoolbox` is a
-command line program and Python library functions to dump data out of
+command line program and Python library functions to extract data out of
 Hydrological Simulation Program - FORTRAN (HSPF) binary output files.
 
 Should work with Python 3.6+.

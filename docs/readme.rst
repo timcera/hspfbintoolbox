@@ -7,10 +7,6 @@ catalog
 ~~~~~~~
 .. program-output:: hspfbintoolbox catalog --help
 
-dump
-~~~~
-.. program-output:: hspfbintoolbox dump --help
-
 extract
 ~~~~~~~
 .. program-output:: hspfbintoolbox extract --help
