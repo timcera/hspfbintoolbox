@@ -8,7 +8,6 @@ import datetime
 import os
 import struct
 import sys
-import warnings
 
 try:
     from typing import Literal
@@ -113,13 +112,22 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
     except AttributeError:
         intervalcode = None
 
-    # Fixup and test the labels - could be in it's own function
+    # Fix up and test the labels - could be in it's own function
     if isinstance(labels, str):
         labels = labels.split(" ")
     labels = tsutils.flatten(labels)
-    for lindex, label in enumerate(labels):
-        words = [lindex] + label.split(",")
-        if len(words) != 5:
+    nlabels = []
+    for label in labels:
+        if isinstance(label, str):
+            nlabels.append(label.split(","))
+        else:
+            nlabels.append(label)
+    labels = tsutils.flatten(nlabels)
+    labels = [[a, b, c, d] for a, b, c, d in zip(*[iter(labels)] * 4)]
+
+    for label in labels:
+        words = label
+        if len(words) != 4:
             raise ValueError(
                 tsutils.error_wrapper(
                     f"""
@@ -130,42 +138,42 @@ The label '{label}' has the wrong number of entries.
 
         words = [None if i == "" else i for i in words]
 
-        if words[1] is not None:
-            words[1] = words[1].upper()
-            if words[1] not in testem.keys():
+        if words[0] is not None:
+            words[0] = words[0].upper()
+            if words[0] not in testem.keys():
                 raise ValueError(
                     tsutils.error_wrapper(
                         f"""
 Operation type must be one of 'PERLND', 'IMPLND', 'RCHRES', or 'BMPRAC',
-or missing (to get all) instead of {words[1]}.
+or missing (to get all) instead of {words[0]}.
 """
                     )
                 )
 
-        if words[2] is not None:
+        if words[1] is not None:
             try:
-                words[2] = int(words[2])
-                if words[2] < 1 or words[2] > 999:
+                words[1] = int(words[1])
+                if words[1] < 1 or words[1] > 999:
                     raise ValueError()
             except (ValueError, TypeError):
                 raise ValueError(
                     tsutils.error_wrapper(
                         f"""
 The land use element must be an integer from 1 to 999 inclusive,
-instead of {words[2]}.
+instead of {words[1]}.
 """
                     )
                 )
 
-        if words[3] is not None:
-            words[3] = words[3].upper()
-            if words[3] not in testem[words[1]]:
+        if words[2] is not None:
+            words[2] = words[2].upper()
+            if words[2] not in testem[words[0]]:
                 raise ValueError(
                     tsutils.error_wrapper(
                         f"""
-The {words[1]} operation type only allows the variable groups:
-{testem[words[1]][:-1]},
-instead you gave {words[3]}.
+The {words[0]} operation type only allows the variable groups:
+{testem[words[0]][:-1]},
+instead you gave {words[2]}.
 """
                     )
                 )
@@ -178,9 +186,9 @@ instead you gave {words[3]}.
         mindate = datetime.datetime.max
         maxdate = datetime.datetime.min
 
-        labeltest = {}
+        labeltest = set()
         vnames = {}
-        ndates = {}
+        ndates = set()
         rectype = 0
         fl.read(1)
         while True:
@@ -218,19 +226,17 @@ instead you gave {words[3]}.
                 )
 
                 vals = struct.unpack(f"{numvals}f", fl.read(4 * numvals))
-                ndate = (
-                    (
-                        datetime.datetime(year, month, day)
-                        + datetime.timedelta(hours=24)
-                        + datetime.timedelta(minutes=minute)
-                    )
-                    if hour == 24
-                    else datetime.datetime(year, month, day, hour, minute)
-                )
+
+                delta = datetime.timedelta(hours=0)
+                if hour == 24:
+                    hour = 0
+                    # if intervalcode == 2:
+                    #    delta = datetime.timedelta(hours=24)
+
+                ndate = datetime.datetime(year, month, day, hour, minute) + delta
 
                 for i, vname in enumerate(vnames[(lue, section)]):
                     tmpkey = (
-                        None,
                         optype.decode("ascii"),
                         lue,
                         section.decode("ascii"),
@@ -238,27 +244,27 @@ instead you gave {words[3]}.
                         level,
                     )
 
-                    if catalog_only is False:
-                        res = tupleSearch(tmpkey, lablist)
-                        if res:
-                            nres = (res[0][0],) + res[0][1][1:]
-                            labeltest[nres[0]] = 1
-                            collect_dict.setdefault(nres, []).append(vals[i])
-                            ndates.setdefault(level, {})[ndate] = 1
-                    else:
-                        mindate = min(mindate, ndate)
-                        maxdate = max(maxdate, ndate)
-                        pdoffset = code2freqmap[level]
-                        collect_dict[tmpkey[1:]] = (
-                            pd.Period(mindate, freq=pdoffset),
-                            pd.Period(maxdate, freq=pdoffset),
-                        )
+                    for lb in lablist:
+                        res = tupleSearch(tmpkey, [lb])
+                        if not res:
+                            continue
+                        labeltest.add(tuple(lb))
+                        nres = res[0][1]
+                        ndates.add(ndate)
+                        if catalog_only is False:
+                            if intervalcode == level:
+                                collect_dict.setdefault(nres, []).append(vals[i])
+                        else:
+                            collect_dict[nres] = level
             else:
                 fl.seek(-31, 1)
 
             # The following should be 1 or 2, but I don't know how to calculate
-            # it, so I just use that the 'rectype' must be 0 or 1, and if not
-            # rewind the correct amount.
+            # it, so I just use that the next value read is 'rectype' which
+            # must be 0 or 1, and if not means that the fl.read(2) should have
+            # been fl.read(1) and rewind the correct amount.  This is a hack,
+            # but it works. This is done at the beginning of the loop, so it
+            # should be fine.
             fl.read(2)
 
     if not collect_dict:
@@ -272,20 +278,27 @@ The label specifications below matched no records in the binary file.
             )
         )
 
+    ndates = sorted(list(ndates))
+
     if catalog_only is False:
-        not_in_file = [
-            labels[loopcnt]
-            for loopcnt in list(range(len(lablist)))
-            if loopcnt not in labeltest.keys()
-        ]
-        if not_in_file:
-            warnings.warn(
-                tsutils.error_wrapper(
-                    f"""
-The specification{'s'[len(not_in_file) == 1:]} {not_in_file}
-matched no records in the binary file.
+        for lb in lablist:
+            if tuple(lb) not in labeltest:
+                sys.stderr.write(
+                    tsutils.error_wrapper(
+                        f"""
+Warning: The label '{lb}' matched no records in the binary file.
 """
+                    )
                 )
+    else:
+        for key in collect_dict:
+            if key[4] == 2:
+                delta = ndates[1] - ndates[0]
+            else:
+                delta = code2freqmap[key[4]]
+            collect_dict[key] = (
+                pd.Period(ndates[0], freq=delta),
+                pd.Period(ndates[-1], freq=delta),
             )
 
     return ndates, collect_dict
@@ -293,7 +306,9 @@ matched no records in the binary file.
 
 @cltoolbox.command("extract", formatter_class=RSTHelpFormatter)
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
-def extract_cli(hbnfilename, interval, time_stamp="begin", sort_columns=False, *labels):
+def extract_cli(
+    hbnfilename, interval, start_date=None, end_date=None, sort_columns=False, *labels
+):
     r"""Prints out data to the screen from a HSPF binary output file.
 
     Parameters
@@ -301,8 +316,8 @@ def extract_cli(hbnfilename, interval, time_stamp="begin", sort_columns=False, *
     ${hbnfilename}
 
     interval: str
-        One of 'yearly', 'monthly', 'daily', or 'BIVL'.  The 'BIVL' option is
-        a sub-daily interval defined in the UCI file.  Typically 'BIVL' is used
+        One of 'yearly', 'monthly', 'daily', or 'bivl'.  The 'bivl' option is
+        a sub-daily interval defined in the UCI file.  Typically 'bivl' is used
         for hourly output, but can be set to any value that evenly divides into
         a day.
 
@@ -345,14 +360,8 @@ def extract_cli(hbnfilename, interval, time_stamp="begin", sort_columns=False, *
             have to leave VARIABLEGROUP as a wild card.  For example,
             'BMPRAC,875,,RMVOL'.
 
-    time_stamp:
-        [optional, default is 'begin']
-
-        For the interval defines the location of the time stamp. If set to
-        'begin', the time stamp is at the beginning of the interval.  If set to
-        any other string, the reported time stamp will represent the end of the
-        interval.
-
+    ${start_date}
+    ${end_date}
     sort_columns:
         [optional, default is False]
 
@@ -363,7 +372,8 @@ def extract_cli(hbnfilename, interval, time_stamp="begin", sort_columns=False, *
             hbnfilename,
             interval,
             *labels,
-            time_stamp=time_stamp,
+            start_date=start_date,
+            end_date=end_date,
             sort_columns=sort_columns,
         )
     )
@@ -372,9 +382,10 @@ def extract_cli(hbnfilename, interval, time_stamp="begin", sort_columns=False, *
 @typic.al
 def extract(
     hbnfilename: str,
-    interval: Literal["yearly", "monthly", "daily", "BIVL"],
+    interval: Literal["yearly", "monthly", "daily", "bivl"],
     *labels,
-    time_stamp: Literal["begin", "end"] = "begin",
+    start_date=None,
+    end_date=None,
     sort_columns: bool = False,
 ):
     r"""Returns a DataFrame from a HSPF binary output file."""
@@ -391,8 +402,7 @@ The "interval" argument must be one of "bivl",
         )
 
     index, data = _get_data(hbnfilename, interval, labels, catalog_only=False)
-    index = index[interval2codemap[interval]]
-    index = sorted(index.keys())
+    index = sorted(list(index))
     skeys = list(data.keys())
     if sort_columns:
         skeys.sort(key=lambda tup: tup[1:])
@@ -404,13 +414,15 @@ The "interval" argument must be one of "bivl",
             [pd.Series(data[i], index=index) for i in skeys], sort=False, axis=1
         ).reindex(pd.Index(index))
     )
-    columns = [f"{i[1]}_{i[2]}_{i[4]}_{i[5]}" for i in skeys]
+    columns = [f"{i[0]}_{i[1]}_{i[3]}".replace(" ", "-") for i in skeys]
     result.columns = columns
-
-    if time_stamp == "begin":
-        result = tsutils.asbestfreq(result)
-        result = result.shift(-1, freq="infer")
-
+    result = tsutils.asbestfreq(result)
+    if start_date is not None or end_date is not None:
+        result = tsutils.common_kwds(result, start_date=start_date, end_date=end_date)
+    if interval == "bivl":
+        result.index = result.index.to_period(result.index[1] - result.index[0])
+    else:
+        result.index = result.index.to_period()
     result.index.name = "Datetime"
 
     return result
@@ -449,62 +461,6 @@ def catalog(hbnfilename: str):
     return [cat + catlog[cat] + (code2intervalmap[cat[-1]],) for cat in catkeys]
 
 
-@cltoolbox.command("dump", formatter_class=RSTHelpFormatter)
-@tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
-def dump_cli(hbnfilename, time_stamp="begin"):
-    """
-    Prints out ALL data from a HSPF binary output file.
-
-    Parameters
-    ----------
-    ${hbnfilename}
-
-    time_stamp
-        [optional, default is 'begin']
-
-        For the interval defines the location of the time stamp. If set
-        to 'begin', the time stamp is at the begining of the interval.
-        If set to any other string, the reported time stamp will
-        represent the end of the interval.  Default is 'begin'.
-
-    """
-    tsutils.printiso(dump(hbnfilename, time_stamp=time_stamp))
-
-
-@typic.al
-def dump(hbnfilename: str, time_stamp: Literal["begin", "end"] = "begin"):
-    """
-    Prints out ALL data from a HSPF binary output file.
-    """
-    if time_stamp not in ["begin", "end"]:
-        raise ValueError(
-            tsutils.error_wrapper(
-                f"""
-The "time_stamp" optional keyword must be either
-"begin" or "end".  You gave {time_stamp}.
-"""
-            )
-        )
-
-    index, data = _get_data(hbnfilename, None, [",,,"], catalog_only=False)
-    skeys = sorted(data.keys())
-
-    result = pd.DataFrame(
-        pd.concat(
-            [pd.Series(data[i], index=index) for i in skeys], sort=False, axis=1
-        ).reindex(pd.Index(index))
-    )
-
-    columns = [f"{i[1]}_{i[2]}_{i[4]}_{i[5]}" for i in skeys]
-    result.columns = columns
-
-    if time_stamp == "begin":
-        result = tsutils.asbestfreq(result)
-        result = result.shift(-1, freq="infer")
-
-    return result
-
-
 @cltoolbox.command()
 def about():
     """Display version number and system information."""
@@ -514,6 +470,10 @@ def about():
 def main():
     if not os.path.exists("debug_hspfbintoolbox"):
         sys.tracebacklimit = 0
+    if os.path.exists("profile_hspfbintoolbox"):
+        import functiontrace
+
+        functiontrace.trace()
     cltoolbox.main()
 
 
