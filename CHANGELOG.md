@@ -1,3 +1,9 @@
+## v7.0.2 (2022-07-23)
+
+### Fix
+
+- several small fixes rolled, label, time-stamp, start_date/end_date, dump
+
 ## v7.0.1 (2022-07-09)
 
 ### Fix
