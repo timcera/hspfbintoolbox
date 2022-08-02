@@ -406,8 +406,6 @@ The "interval" argument must be one of "bivl",
     skeys = list(data.keys())
     if sort_columns:
         skeys.sort(key=lambda tup: tup[1:])
-    else:
-        skeys.sort()
 
     result = pd.DataFrame(
         pd.concat(
