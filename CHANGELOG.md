@@ -1,3 +1,9 @@
+## v7.0.3 (2022-08-02)
+
+### Fix
+
+- **sort_columns**: fixed sort_columns keyword to sort when True and to leave alone if False
+
 ## v7.0.2 (2022-07-23)
 
 ### Fix
