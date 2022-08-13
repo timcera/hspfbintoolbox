@@ -61,6 +61,73 @@ def tupleSearch(findme, haystack):
     ]
 
 
+def _range_to_numlist(rangestr):
+    numlist = []
+    subranges = rangestr.split("+")
+    for sub in subranges:
+        if ":" not in sub:
+            try:
+                num = int(sub)
+                numlist.append(num)
+            except ValueError:
+                raise ValueError(
+                    tsutils.error_wrapper(
+                        f"""
+Invalid range specification '{rangestr}'.  The correct syntax is
+one or more integers or colon-delimited range groups such
+as "99", "1:2", or "101:120", with multiple groups connected
+by "+" signs.   Example: "1:4+16:22+30"
+"""
+                    )
+                )
+                return []
+        else:
+            ends = sub.split(":")
+            if len(ends) == 2:
+                try:
+                    rstart = int(ends[0])
+                except ValueError:
+                    raise ValueError(
+                        tsutils.error_wrapper(
+                            f"""
+Invalid range specification '{rangestr}'.  The correct syntax is
+one or more integers or colon-delimited range groups such
+as "99", "1:2", or "101:120", with multiple groups connected
+by "+" signs.   Example: "1:4+16:22+30"
+"""
+                        )
+                    )
+                    return []
+                try:
+                    rend = int(ends[1]) + 1
+                except ValueError:
+                    raise ValueError(
+                        tsutils.error_wrapper(
+                            f"""
+Invalid range specification '{rangestr}'.  The correct syntax is
+one or more integers or colon-delimited range groups such
+as "99", "1:2", or "101:120", with multiple groups connected
+by "+" signs.   Example: "1:4+16:22+30"
+"""
+                        )
+                    )
+                    return []
+                for i in range(rstart, rend):
+                    numlist.append(i)
+            else:
+                raise ValueError(
+                    tsutils.error_wrapper(
+                        f"""
+Invalid range specification '{rangestr}'.  The correct syntax is
+one or more integers or colon-delimited range groups such
+as "99", "1:2", or "101:120", with multiple groups connected
+by "+" signs.   Example: "1:4+16:22+30"
+"""
+                    )
+                )
+    return numlist
+
+
 def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
     """Underlying function to read from the binary file.  Used by
     'extract', 'catalog'.
@@ -112,19 +179,19 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
     except AttributeError:
         intervalcode = None
 
-    # Fix up and test the labels - could be in it's own function
-    if isinstance(labels, str):
-        labels = labels.split(" ")
-    labels = tsutils.flatten(labels)
+    # convert label tuples to lists
+    labels = list(labels)
+
+    # turn into a list of lists
     nlabels = []
     for label in labels:
         if isinstance(label, str):
             nlabels.append(label.split(","))
         else:
             nlabels.append(label)
-    labels = tsutils.flatten(nlabels)
-    labels = [[a, b, c, d] for a, b, c, d in zip(*[iter(labels)] * 4)]
+    labels = nlabels
 
+    # Check the list members for valid values
     for label in labels:
         words = label
         if len(words) != 4:
@@ -136,11 +203,14 @@ The label '{label}' has the wrong number of entries.
                 )
             )
 
+        # replace empty fields with None
         words = [None if i == "" else i for i in words]
 
+        # first word must be a valid operation type or None
         if words[0] is not None:
+            # force uppercase before comparison
             words[0] = words[0].upper()
-            if words[0] not in testem.keys():
+            if words[0] not in list(testem.keys()):
                 raise ValueError(
                     tsutils.error_wrapper(
                         f"""
@@ -150,21 +220,29 @@ or missing (to get all) instead of {words[0]}.
                     )
                 )
 
+        # second word must be integer 1-999 or None or range to parse
         if words[1] is not None:
-            try:
+            if ":" in words[1] or "+" in words[1]:
+                luelist = _range_to_numlist(words[1])
+                # luelist = [4, 5, 6, 7] # temporary placeholder
+            else:
                 words[1] = int(words[1])
-                if words[1] < 1 or words[1] > 999:
-                    raise ValueError()
-            except (ValueError, TypeError):
-                raise ValueError(
-                    tsutils.error_wrapper(
-                        f"""
+                luelist = [words[1]]
+            for luenum in luelist:
+                try:
+                    if luenum < 1 or luenum > 999:
+                        raise ValueError()
+                except (ValueError, TypeError):
+                    raise ValueError(
+                        tsutils.error_wrapper(
+                            f"""
 The land use element must be an integer from 1 to 999 inclusive,
-instead of {words[1]}.
+instead of {luenum}.
 """
+                        )
                     )
-                )
 
+        # third word must be a valid group name or None
         if words[2] is not None:
             words[2] = words[2].upper()
             if words[2] not in testem[words[0]]:
@@ -178,68 +256,119 @@ instead you gave {words[2]}.
                     )
                 )
 
+        # fourth word is currently not checked - assumed to be a variable name
+        # if not, it will simply never be found in the file, so ok
+        # but no warning for the user - add check?
+
+        # add interval code as fifth word in list
         words.append(intervalcode)
-        lablist.append(words)
 
+        # add to new list of checked and expanded lists
+        for luenum in luelist:
+            words[1] = luenum
+            lablist.append(list(words))
+
+    # Now read through the binary file and collect the data matching the labels
     with open(binfilename, "rb") as fl:
-
-        mindate = datetime.datetime.max
-        maxdate = datetime.datetime.min
 
         labeltest = set()
         vnames = {}
         ndates = set()
-        rectype = 0
-        fl.read(1)
+        # read first byte - must be hex FD (decimal 253) for valid file.
+        magicbyte = fl.read(1)
+        if magicbyte != b"\xfd":
+            # not a valid HSPF binary file
+            raise ValueError(
+                tsutils.error_wrapper(
+                    f"""
+{binfilename} is not a valid HSPF binary output file (.hbn),  The
+first byte must be FD hexadecimal, but it was {magicbyte}.
+"""
+                )
+            )
+            return None
+
+        # loop through each record
         while True:
+            # reinitialize counter for record length - used to compute skip at
+            # end
+            recpos = 0
+
+            # read first four bytes to get record length bitfield
             try:
                 reclen1, reclen2, reclen3, reclen = struct.unpack("4B", fl.read(4))
+                recpos += 4
             except struct.error:
                 # End of file.
                 break
 
-            rectype, optype, lue, section = struct.unpack("I8sI8s", fl.read(24))
+            # get record leader - next 24 bytes
+            rectype, optype, lue, group = struct.unpack("I8sI8s", fl.read(24))
+            recpos += 24
 
+            # clean up
             rectype = int(rectype)
             lue = int(lue)
             optype = optype.strip()
-            section = section.strip()
+            group = group.strip()
 
-            slen = 0
             if rectype == 0:
+                # header record - collect variable names for this
+                # operation and group
+
+                # parse reclen bitfield to get actual remaining length
+                # the " - 24 " subtracts the 24 bytes already read
                 reclen1 = int(reclen1 / 4)
                 reclen2 = reclen2 * 64 + reclen1
                 reclen3 = reclen3 * 16384 + reclen2
                 reclen = reclen * 4194304 + reclen3 - 24
+
+                # loop through rest of record
+                slen = 0
                 while slen < reclen:
+                    # read single 4B word for length of next variable name
                     length = struct.unpack("I", fl.read(4))[0]
-                    slen = slen + length + 4
+
+                    # read the variable name
                     variable_name = struct.unpack(f"{length}s", fl.read(length))[0]
-                    vnames.setdefault((lue, section), []).append(variable_name)
+
+                    # add variable name to the set for this operation
+                    # why a set instead of a list? There should never be
+                    # a duplicate anyway
+                    vnames.setdefault((lue, group), []).append(variable_name)
+
+                    # update how far along the record we are
+                    slen += length + 4
+                    recpos += length + 4
 
             elif rectype == 1:
                 # Data record
-                numvals = len(vnames[(lue, section)])
+
+                # record should contain a value for each variable name for this
+                # operation and group
+                numvals = len(vnames[(lue, group)])
 
                 (_, level, year, month, day, hour, minute) = struct.unpack(
                     "7I", fl.read(28)
                 )
+                recpos += 28
 
                 vals = struct.unpack(f"{numvals}f", fl.read(4 * numvals))
+                recpos += 4 * numvals
 
                 delta = datetime.timedelta(hours=0)
                 if hour == 24:
                     hour = 0
-                    # if intervalcode == 2:
-                    #    delta = datetime.timedelta(hours=24)
 
                 ndate = datetime.datetime(year, month, day, hour, minute) + delta
 
-                for i, vname in enumerate(vnames[(lue, section)]):
+                #  Go through labels to see if these values need to be
+                #  collected
+                for i, vname in enumerate(vnames[(lue, group)]):
                     tmpkey = (
                         optype.decode("ascii"),
                         lue,
-                        section.decode("ascii"),
+                        group.decode("ascii"),
                         vname.decode("ascii"),
                         level,
                     )
@@ -257,15 +386,19 @@ instead you gave {words[2]}.
                         else:
                             collect_dict[nres] = level
             else:
+                # there was a problem with unexpected record length
+                # back up almost all the way and try again
                 fl.seek(-31, 1)
 
-            # The following should be 1 or 2, but I don't know how to calculate
-            # it, so I just use that the next value read is 'rectype' which
-            # must be 0 or 1, and if not means that the fl.read(2) should have
-            # been fl.read(1) and rewind the correct amount.  This is a hack,
-            # but it works. This is done at the beginning of the loop, so it
-            # should be fine.
-            fl.read(2)
+            # skip variable-length back pointer
+            reccnt = recpos * 4 + 1
+            if reccnt >= 256**2:
+                skbytes = 3
+            elif reccnt >= 256:
+                skbytes = 2
+            else:
+                skbytes = 1
+            fl.read(skbytes)
 
     if not collect_dict:
         raise ValueError(
@@ -292,7 +425,7 @@ Warning: The label '{lb}' matched no records in the binary file.
                 )
     else:
         for key in collect_dict:
-            if key[4] == 2:
+            if key[4] == 2:  # timestep is bivl
                 delta = ndates[1] - ndates[0]
             else:
                 delta = code2freqmap[key[4]]
@@ -323,7 +456,7 @@ def extract_cli(
 
     labels: str
         The remaining arguments uniquely identify a time-series in the
-        binary file.  The format is 'OPERATIONTYPE,ID,VARIABLE_GROUP,VARIABLE'.
+        binary file.  The format is 'OPERATIONTYPE,ID,VARIABLEGROUP,VARIABLE'.
 
         For example: 'PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS'
 
@@ -341,9 +474,22 @@ def extract_cli(
 
         OPERATIONTYE can be PERLND, IMPLND, RCHRES, and BMPRAC.
 
-        ID is specified in the UCI file.
+        ID is the operation type identification number specified in the UCI file.
+        These numbers must be in the range 1-999.
 
-        VARIABLE_GROUP depends on OPERATIONTYPE where::
+            Here, the user can specify
+                - a single ID number to match
+                - no entry, matching any operation ID number
+                - a range, specified as any combination of simple integers and
+                  groups of integers marked as "start:end", with multiple allowed
+                  subranges separated by the "+" sign.
+                  Examples: range                   matches
+                            ---------------         ---------------------------
+                            1:10                    1,2,3,4,5,6,7,8,9,10
+                            101:119+221:239         101,102..119,221,221,...239
+                            3:5+7                   3,4,5,7
+
+        VARIABLEGROUP depends on OPERATIONTYPE where::
 
             if OPERATIONTYPE is PERLND then VARIABLEGROUP can be one of
                 'ATEMP', 'SNOW', 'PWATER', 'SEDMNT', 'PSTEMP', 'PWTGAS',
@@ -356,9 +502,13 @@ def extract_cli(
                 'HYDR', 'CONS', 'HTRCH', 'SEDTRN', 'GQUAL', 'OXRX', 'NUTRX',
                 'PLANK', 'PHCARB', 'INFLOW', 'OFLOW', 'ROFLOW'
 
-            if OPERATIONTYPE is BMPRAC then there is no VARIABLEGROUP and you
+            if OPERATIONTYPE is BMPRAC then VARIABLEGROUP is not used and you
             have to leave VARIABLEGROUP as a wild card.  For example,
             'BMPRAC,875,,RMVOL'.
+
+        The Time Series Catalog in the HSPF Manual lists all of the variables
+        in each of these VARIABLEGROUPs.  For BMPRAC, all of the variables in
+        all Groups in the Catalog are available in the unnamed (blank) Group.
 
     ${start_date}
     ${end_date}
@@ -402,7 +552,6 @@ The "interval" argument must be one of "bivl",
         )
 
     index, data = _get_data(hbnfilename, interval, labels, catalog_only=False)
-    index = sorted(list(index))
     skeys = list(data.keys())
     if sort_columns:
         skeys.sort(key=lambda tup: tup[1:])
