@@ -1,3 +1,13 @@
+## v7.1.0 (2022-08-14)
+
+### Fix
+
+- finishing touches on the id ranges within labels
+
+### Feat
+
+- implemented element ranges within labels
+
 ## v7.0.3 (2022-08-02)
 
 ### Fix
