@@ -80,41 +80,9 @@ by "+" signs.   Example: "1:4+16:22+30"
 """
                     )
                 )
-                return []
         else:
             ends = sub.split(":")
-            if len(ends) == 2:
-                try:
-                    rstart = int(ends[0])
-                except ValueError:
-                    raise ValueError(
-                        tsutils.error_wrapper(
-                            f"""
-Invalid range specification '{rangestr}'.  The correct syntax is
-one or more integers or colon-delimited range groups such
-as "99", "1:2", or "101:120", with multiple groups connected
-by "+" signs.   Example: "1:4+16:22+30"
-"""
-                        )
-                    )
-                    return []
-                try:
-                    rend = int(ends[1]) + 1
-                except ValueError:
-                    raise ValueError(
-                        tsutils.error_wrapper(
-                            f"""
-Invalid range specification '{rangestr}'.  The correct syntax is
-one or more integers or colon-delimited range groups such
-as "99", "1:2", or "101:120", with multiple groups connected
-by "+" signs.   Example: "1:4+16:22+30"
-"""
-                        )
-                    )
-                    return []
-                for i in range(rstart, rend):
-                    numlist.append(i)
-            else:
+            if len(ends) != 2:
                 raise ValueError(
                     tsutils.error_wrapper(
                         f"""
@@ -125,6 +93,33 @@ by "+" signs.   Example: "1:4+16:22+30"
 """
                     )
                 )
+            try:
+                rstart = int(ends[0])
+            except ValueError:
+                raise ValueError(
+                    tsutils.error_wrapper(
+                        f"""
+Invalid range specification '{rangestr}'.  The correct syntax is
+one or more integers or colon-delimited range groups such
+as "99", "1:2", or "101:120", with multiple groups connected
+by "+" signs.   Example: "1:4+16:22+30"
+"""
+                    )
+                )
+            try:
+                rend = int(ends[1]) + 1
+            except ValueError:
+                raise ValueError(
+                    tsutils.error_wrapper(
+                        f"""
+Invalid range specification '{rangestr}'.  The correct syntax is
+one or more integers or colon-delimited range groups such
+as "99", "1:2", or "101:120", with multiple groups connected
+by "+" signs.   Example: "1:4+16:22+30"
+"""
+                    )
+                )
+            numlist.extend(iter(range(rstart, rend)))
     return numlist
 
 
