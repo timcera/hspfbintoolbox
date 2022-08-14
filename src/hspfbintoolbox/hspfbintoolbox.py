@@ -217,17 +217,13 @@ or missing (to get all) instead of {words[0]}.
 
         # second word must be integer 1-999 or None or range to parse
         if words[1] is not None:
-            if ":" in words[1] or "+" in words[1]:
-                luelist = _range_to_numlist(words[1])
-                # luelist = [4, 5, 6, 7] # temporary placeholder
-            else:
+            try:
                 words[1] = int(words[1])
                 luelist = [words[1]]
+            except ValueError:
+                luelist = _range_to_numlist(words[1])
             for luenum in luelist:
-                try:
-                    if luenum < 1 or luenum > 999:
-                        raise ValueError()
-                except (ValueError, TypeError):
+                if luenum < 1 or luenum > 999:
                     raise ValueError(
                         tsutils.error_wrapper(
                             f"""
@@ -236,6 +232,8 @@ instead of {luenum}.
 """
                         )
                     )
+        else:
+            luelist = [None]
 
         # third word must be a valid group name or None
         if words[2] is not None:
@@ -455,7 +453,7 @@ def extract_cli(
 
         For example: 'PERLND,101,PWATER,UZS IMPLND,101,IWATER,RETS'
 
-        Leaving a section without an entry will wildcard that
+        Leaving a section without an entry will wild card that
         specification.  To get all the PWATER variables for PERLND 101 the
         label would read:
 
@@ -465,24 +463,33 @@ def extract_cli(
 
         'PERLND,,,TAET'
 
-        Note that there are spaces ONLY between label specifications.
+        Note that there are spaces ONLY between label specifications not within
+        the labels themselves.
 
         OPERATIONTYE can be PERLND, IMPLND, RCHRES, and BMPRAC.
 
-        ID is the operation type identification number specified in the UCI file.
-        These numbers must be in the range 1-999.
+        ID is the operation type identification number specified in the UCI
+        file. These numbers must be in the range 1-999.
 
-            Here, the user can specify
-                - a single ID number to match
-                - no entry, matching any operation ID number
-                - a range, specified as any combination of simple integers and
-                  groups of integers marked as "start:end", with multiple allowed
-                  subranges separated by the "+" sign.
-                  Examples: range                   matches
-                            ---------------         ---------------------------
-                            1:10                    1,2,3,4,5,6,7,8,9,10
-                            101:119+221:239         101,102..119,221,221,...239
-                            3:5+7                   3,4,5,7
+        Here, the user can specify
+
+            - a single ID number to match
+            - no entry, matching any operation ID number
+            - a range, specified as any combination of simple integers and
+              groups of integers marked as "start:end", with multiple allowed
+              sub-ranges separated by the "+" sign.
+
+        Examples:
+
+            +-----------------------+-------------------------------+
+            | Label ID              | Expands to:                   |
+            +=======================+===============================+
+            | 1:10                  | 1,2,3,4,5,6,7,8,9,10          |
+            +-----------------------+-------------------------------+
+            | 101:119+221:239       | 101,102..119,221,221,...239   |
+            +-----------------------+-------------------------------+
+            | 3:5+7                 | 3,4,5,7                       |
+            +-----------------------+-------------------------------+
 
         VARIABLEGROUP depends on OPERATIONTYPE where::
 
@@ -588,7 +595,9 @@ def catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     """
     if header == "default":
         header = ["LUE", "LC", "GROUP", "VAR", "TC", "START", "END", "TC"]
-    tsutils.printiso(catalog(hbnfilename), tablefmt=tablefmt, headers=header)
+    tsutils.printiso(
+        catalog(hbnfilename), tablefmt=tablefmt, headers=header, showindex=False
+    )
 
 
 @typic.al
