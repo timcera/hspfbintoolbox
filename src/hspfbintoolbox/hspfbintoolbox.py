@@ -34,7 +34,7 @@ _LOCAL_DOCSTRINGS = {
 }
 
 
-def tupleMatch(a, b):
+def tuple_match(a, b):
     """Part of partial ordered matching.
     See http://stackoverflow.com/a/4559604
     """
@@ -43,21 +43,21 @@ def tupleMatch(a, b):
     )
 
 
-def tupleCombine(a, b):
+def tuple_combine(a, b):
     """Part of partial ordered matching.
     See http://stackoverflow.com/a/4559604
     """
     return tuple(i is None and j or i for i, j in zip(a, b))
 
 
-def tupleSearch(findme, haystack):
+def tuple_search(findme, haystack):
     """Partial ordered matching with 'None' as wildcard
     See http://stackoverflow.com/a/4559604
     """
     return [
-        (i, tupleCombine(findme, h))
+        (i, tuple_combine(findme, h))
         for i, h in enumerate(haystack)
-        if tupleMatch(findme, h)
+        if tuple_match(findme, h)
     ]
 
 
@@ -65,61 +65,31 @@ def _range_to_numlist(rangestr):
     numlist = []
     subranges = rangestr.split("+")
     for sub in subranges:
-        if ":" not in sub:
-            try:
+        try:
+            if ":" not in sub:
                 num = int(sub)
                 numlist.append(num)
-            except ValueError:
-                raise ValueError(
-                    tsutils.error_wrapper(
-                        f"""
-Invalid range specification '{rangestr}'.  The correct syntax is
-one or more integers or colon-delimited range groups such
-as "99", "1:2", or "101:120", with multiple groups connected
-by "+" signs.   Example: "1:4+16:22+30"
-"""
-                    )
-                )
-        else:
-            ends = sub.split(":")
-            if len(ends) != 2:
-                raise ValueError(
-                    tsutils.error_wrapper(
-                        f"""
-Invalid range specification '{rangestr}'.  The correct syntax is
-one or more integers or colon-delimited range groups such
-as "99", "1:2", or "101:120", with multiple groups connected
-by "+" signs.   Example: "1:4+16:22+30"
-"""
-                    )
-                )
-            try:
+            else:
+                ends = sub.split(":")
+                if len(ends) != 2:
+                    raise ValueError()
                 rstart = int(ends[0])
-            except ValueError:
-                raise ValueError(
-                    tsutils.error_wrapper(
-                        f"""
-Invalid range specification '{rangestr}'.  The correct syntax is
-one or more integers or colon-delimited range groups such
-as "99", "1:2", or "101:120", with multiple groups connected
-by "+" signs.   Example: "1:4+16:22+30"
-"""
-                    )
-                )
-            try:
                 rend = int(ends[1]) + 1
-            except ValueError:
-                raise ValueError(
-                    tsutils.error_wrapper(
-                        f"""
-Invalid range specification '{rangestr}'.  The correct syntax is
-one or more integers or colon-delimited range groups such
-as "99", "1:2", or "101:120", with multiple groups connected
-by "+" signs.   Example: "1:4+16:22+30"
-"""
-                    )
+                if rstart > rend:
+                    raise ValueError()
+                numlist.extend(iter(range(rstart, rend)))
+        except ValueError as exc:
+            raise ValueError(
+                tsutils.error_wrapper(
+                    f"""
+                    Invalid range specification in '{sub}' of the '{rangestr}'.
+                    The correct syntax is one or more integers or
+                    colon-delimited range groups such as "99", "1:2", or
+                    "101:120", with multiple groups connected by "+" signs.
+                    Example: "1:4+16:22+30"
+                    """
                 )
-            numlist.extend(iter(range(rstart, rend)))
+            ) from exc
     return numlist
 
 
@@ -188,30 +158,30 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
 
     # Check the list members for valid values
     for label in labels:
-        words = label
-        if len(words) != 4:
+        if len(label) != 4:
             raise ValueError(
                 tsutils.error_wrapper(
                     f"""
-The label '{label}' has the wrong number of entries.
-"""
+                    The label '{label}' has the wrong number of entries.
+                    """
                 )
             )
 
         # replace empty fields with None
-        words = [None if i == "" else i for i in words]
+        words = [None if i == "" else i for i in label]
 
         # first word must be a valid operation type or None
         if words[0] is not None:
             # force uppercase before comparison
             words[0] = words[0].upper()
-            if words[0] not in list(testem.keys()):
+            if words[0] not in testem:
                 raise ValueError(
                     tsutils.error_wrapper(
                         f"""
-Operation type must be one of 'PERLND', 'IMPLND', 'RCHRES', or 'BMPRAC',
-or missing (to get all) instead of {words[0]}.
-"""
+                        Operation type must be one of 'PERLND', 'IMPLND',
+                        'RCHRES', or 'BMPRAC', or missing (to get all) instead
+                        of {words[0]}.
+                        """
                     )
                 )
 
@@ -227,9 +197,9 @@ or missing (to get all) instead of {words[0]}.
                     raise ValueError(
                         tsutils.error_wrapper(
                             f"""
-The land use element must be an integer from 1 to 999 inclusive,
-instead of {luenum}.
-"""
+                            The land use element must be an integer from 1 to
+                            999 inclusive, instead of {luenum}.
+                            """
                         )
                     )
         else:
@@ -242,10 +212,10 @@ instead of {luenum}.
                 raise ValueError(
                     tsutils.error_wrapper(
                         f"""
-The {words[0]} operation type only allows the variable groups:
-{testem[words[0]][:-1]},
-instead you gave {words[2]}.
-"""
+                        The {words[0]} operation type only allows the variable
+                        groups: {testem[words[0]][:-1]},
+                        instead you gave {words[2]}.
+                        """
                     )
                 )
 
@@ -262,24 +232,24 @@ instead you gave {words[2]}.
             lablist.append(list(words))
 
     # Now read through the binary file and collect the data matching the labels
-    with open(binfilename, "rb") as fl:
+    with open(binfilename, "rb") as binfp:
 
         labeltest = set()
         vnames = {}
         ndates = set()
         # read first byte - must be hex FD (decimal 253) for valid file.
-        magicbyte = fl.read(1)
+        magicbyte = binfp.read(1)
         if magicbyte != b"\xfd":
             # not a valid HSPF binary file
             raise ValueError(
                 tsutils.error_wrapper(
                     f"""
-{binfilename} is not a valid HSPF binary output file (.hbn),  The
-first byte must be FD hexadecimal, but it was {magicbyte}.
-"""
+                    {binfilename} is not a valid HSPF binary output file
+                    (.hbn),  The first byte must be FD hexadecimal, but it was
+                    {magicbyte}.
+                    """
                 )
             )
-            return None
 
         # loop through each record
         while True:
@@ -289,14 +259,14 @@ first byte must be FD hexadecimal, but it was {magicbyte}.
 
             # read first four bytes to get record length bitfield
             try:
-                reclen1, reclen2, reclen3, reclen = struct.unpack("4B", fl.read(4))
+                reclen1, reclen2, reclen3, reclen = struct.unpack("4B", binfp.read(4))
                 recpos += 4
             except struct.error:
                 # End of file.
                 break
 
             # get record leader - next 24 bytes
-            rectype, optype, lue, group = struct.unpack("I8sI8s", fl.read(24))
+            rectype, optype, lue, group = struct.unpack("I8sI8s", binfp.read(24))
             recpos += 24
 
             # clean up
@@ -320,10 +290,10 @@ first byte must be FD hexadecimal, but it was {magicbyte}.
                 slen = 0
                 while slen < reclen:
                     # read single 4B word for length of next variable name
-                    length = struct.unpack("I", fl.read(4))[0]
+                    length = struct.unpack("I", binfp.read(4))[0]
 
                     # read the variable name
-                    variable_name = struct.unpack(f"{length}s", fl.read(length))[0]
+                    variable_name = struct.unpack(f"{length}s", binfp.read(length))[0]
 
                     # add variable name to the set for this operation
                     # why a set instead of a list? There should never be
@@ -342,11 +312,11 @@ first byte must be FD hexadecimal, but it was {magicbyte}.
                 numvals = len(vnames[(lue, group)])
 
                 (_, level, year, month, day, hour, minute) = struct.unpack(
-                    "7I", fl.read(28)
+                    "7I", binfp.read(28)
                 )
                 recpos += 28
 
-                vals = struct.unpack(f"{numvals}f", fl.read(4 * numvals))
+                vals = struct.unpack(f"{numvals}f", binfp.read(4 * numvals))
                 recpos += 4 * numvals
 
                 delta = datetime.timedelta(hours=0)
@@ -366,11 +336,11 @@ first byte must be FD hexadecimal, but it was {magicbyte}.
                         level,
                     )
 
-                    for lb in lablist:
-                        res = tupleSearch(tmpkey, [lb])
+                    for lbl in lablist:
+                        res = tuple_search(tmpkey, [lbl])
                         if not res:
                             continue
-                        labeltest.add(tuple(lb))
+                        labeltest.add(tuple(lbl))
                         nres = res[0][1]
                         ndates.add(ndate)
                         if catalog_only is False:
@@ -381,9 +351,9 @@ first byte must be FD hexadecimal, but it was {magicbyte}.
             else:
                 # there was a problem with unexpected record length
                 # back up almost all the way and try again
-                fl.seek(-31, 1)
+                binfp.seek(-31, 1)
 
-            # skip variable-length back pointer
+            # calculate and skip to the end of the variable-length back pointer
             reccnt = recpos * 4 + 1
             if reccnt >= 256**2:
                 skbytes = 3
@@ -391,29 +361,31 @@ first byte must be FD hexadecimal, but it was {magicbyte}.
                 skbytes = 2
             else:
                 skbytes = 1
-            fl.read(skbytes)
+            binfp.read(skbytes)
 
     if not collect_dict:
         raise ValueError(
             tsutils.error_wrapper(
                 f"""
-The label specifications below matched no records in the binary file.
+                The label specifications below matched no records in the binary
+                file.
 
-{lablist}
-"""
+                {lablist}
+                """
             )
         )
 
     ndates = sorted(list(ndates))
 
     if catalog_only is False:
-        for lb in lablist:
-            if tuple(lb) not in labeltest:
+        for lbl in lablist:
+            if tuple(lbl) not in labeltest:
                 sys.stderr.write(
                     tsutils.error_wrapper(
                         f"""
-Warning: The label '{lb}' matched no records in the binary file.
-"""
+                        Warning: The label '{lbl}' matched no records in the
+                        binary file.
+                        """
                     )
                 )
     else:
@@ -432,7 +404,7 @@ Warning: The label '{lb}' matched no records in the binary file.
 
 @cltoolbox.command("extract", formatter_class=RSTHelpFormatter)
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
-def extract_cli(
+def _extract_cli(
     hbnfilename, interval, start_date=None, end_date=None, sort_columns=False, *labels
 ):
     r"""Prints out data to the screen from a HSPF binary output file.
@@ -546,10 +518,9 @@ def extract(
         raise ValueError(
             tsutils.error_wrapper(
                 f"""
-The "interval" argument must be one of "bivl",
-"daily", "monthly", or "yearly".  You supplied
-"{interval}".
-"""
+                The "interval" argument must be one of "bivl", "daily",
+                "monthly", or "yearly".  You supplied "{interval}".
+                """
             )
         )
 
@@ -579,7 +550,7 @@ The "interval" argument must be one of "bivl",
 
 @cltoolbox.command("catalog", formatter_class=RSTHelpFormatter)
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
-def catalog_cli(hbnfilename, tablefmt="simple", header="default"):
+def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     """
     Prints out a catalog of data sets in the binary file.
 
