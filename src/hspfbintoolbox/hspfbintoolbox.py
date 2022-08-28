@@ -14,11 +14,13 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-import cltoolbox
 import pandas as pd
 import typic
+from cltoolbox import Program
 from cltoolbox.rst_text_formatter import RSTHelpFormatter
-from tstoolbox import tsutils
+from toolbox_utils import tsutils
+
+program = Program("hspfbintoolbox", 0.0)
 
 code2intervalmap = {5: "yearly", 4: "monthly", 3: "daily", 2: "bivl"}
 
@@ -402,7 +404,7 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
     return ndates, collect_dict
 
 
-@cltoolbox.command("extract", formatter_class=RSTHelpFormatter)
+@program.command("extract", formatter_class=RSTHelpFormatter)
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
 def _extract_cli(
     hbnfilename, interval, start_date=None, end_date=None, sort_columns=False, *labels
@@ -548,7 +550,7 @@ def extract(
     return result
 
 
-@cltoolbox.command("catalog", formatter_class=RSTHelpFormatter)
+@program.command("catalog", formatter_class=RSTHelpFormatter)
 @tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
 def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     """
@@ -583,7 +585,7 @@ def catalog(hbnfilename: str):
     return [cat + catlog[cat] + (code2intervalmap[cat[-1]],) for cat in catkeys]
 
 
-@cltoolbox.command()
+@program.command()
 def about():
     """Display version number and system information."""
     tsutils.about(__name__)
@@ -596,7 +598,7 @@ def main():
         import functiontrace
 
         functiontrace.trace()
-    cltoolbox.main()
+    program()
 
 
 if __name__ == "__main__":

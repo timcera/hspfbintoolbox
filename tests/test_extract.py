@@ -13,7 +13,7 @@ import sys
 from unittest import TestCase
 
 from pandas.testing import assert_frame_equal
-from tstoolbox import tsutils
+from toolbox_utils import tsutils
 
 try:
     from StringIO import StringIO
