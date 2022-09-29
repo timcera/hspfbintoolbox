@@ -1,3 +1,10 @@
+## v7.1.1 (2022-09-28)
+
+### Refactor
+
+- moved from tstoolbox.utils to toolbox_utils
+- cleaned up code supporting id slices and indexing
+
 ## v7.1.0 (2022-08-14)
 
 ### Fix
