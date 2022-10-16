@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 hspfbintoolbox to read HSPF binary files.
 """
@@ -15,9 +14,9 @@ except ImportError:
     from typing_extensions import Literal
 
 import pandas as pd
-import typic
 from cltoolbox import Program
 from cltoolbox.rst_text_formatter import RSTHelpFormatter
+from pydantic import validate_arguments
 from toolbox_utils import tsutils
 
 program = Program("hspfbintoolbox", 0.0)
@@ -505,7 +504,7 @@ def _extract_cli(
     )
 
 
-@typic.al
+@validate_arguments
 def extract(
     hbnfilename: str,
     interval: Literal["yearly", "monthly", "daily", "bivl"],
@@ -573,7 +572,7 @@ def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     )
 
 
-@typic.al
+@validate_arguments
 def catalog(hbnfilename: str):
     """
     Prints out a catalog of data sets in the binary file.

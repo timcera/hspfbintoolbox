@@ -17,6 +17,7 @@ Table of Contents
    :maxdepth: 2
 
    readme
+   command_line
    function_summary
    contributing
    authors

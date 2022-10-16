@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # hspfbintoolbox documentation build configuration file, created by
 # sphinx-quickstart on Tue Oct 15 22:15:40 2013.

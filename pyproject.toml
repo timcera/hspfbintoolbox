@@ -1,12 +1,20 @@
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+    "oldest-supported-numpy",
+]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "hspfbintoolbox"
 dynamic = ["readme", "version"]
 description = "Reads Hydrological Simulation Program - FORTRAN binary output files."
 dependencies = [
-    "toolbox_utils < 1.0.0",
+    "toolbox_utils >= 1.0.0, < 2.0.0",
     "cltoolbox > 1.1.0",
     "typing_extensions",
-    "typical",
+    "pydantic",
     "pandas",
     ]
 license = {text = "BSD-3-Clause"}
@@ -61,30 +69,12 @@ dev = [
 [project.scripts]
 hspfbintoolbox = "hspfbintoolbox.hspfbintoolbox:main"
 
-[project_urls]
+[project.urls]
 documentation = "https://timcera.bitbucket.io/hspfbintoolbox/docs/index.html#hspfbintoolbox-documentation"
 github = "https://github.com/timcera/hspfbintoolbox"
 bitbucket = "https://bitbucket.org/timcera/hspfbintoolbox/src/main/"
 
-[tool.setuptools]
-license-files = ["LICENSE.txt"]
-include-package-data = true
-
-[tool.setuptools.dynamic]
-readme = {file = "README.rst"}
-version = {file = "VERSION"}
-
-[tool.setuptools.packages.find]
-where = ["src"]
-exclude = ["examples*", "tools*", "docs*", "hspfbintoolbox.tests*"]
-
-[build-system]
-requires = [
-    "setuptools",
-    "wheel",
-    "oldest-supported-numpy",
-]
-build-backend = "setuptools.build_meta"
+[tool]
 
 [tool.check-manifest]
 ignore = ["docs/_function_autosummary/*",
@@ -98,3 +88,15 @@ version = "7.1.1"
 tag_format = "v$version"
 version_files = ["VERSION"]
 update_changelog_on_bump = true
+
+[tool.setuptools]
+license-files = ["LICENSE.txt"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+readme = {file = "README.rst"}
+version = {file = "VERSION"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["examples*", "tools*", "docs*", "hspfbintoolbox.tests*"]
