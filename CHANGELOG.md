@@ -1,3 +1,9 @@
+## v8.0.0 (2022-10-29)
+
+### Fix
+
+- move from typic to pydantic.validate_arguments
+
 ## v7.1.1 (2022-09-28)
 
 ### Refactor
