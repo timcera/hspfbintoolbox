@@ -100,3 +100,6 @@ version = {file = "VERSION"}
 [tool.setuptools.packages.find]
 where = ["src"]
 exclude = ["examples*", "tools*", "docs*", "hspfbintoolbox.tests*"]
+
+[tool.isort]
+profile = "black"

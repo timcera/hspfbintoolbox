@@ -38,18 +38,14 @@ command line programs like ``tstoolbox``.
 Requirements
 ------------
 
-* pandas - on Windows this is part of the Python(x,y), Enthought, or
-  Anaconda distributions
-
-* mando - command line parser
+* python 3.7 or later
 
 * tstoolbox - utilities to process time-series
 
 Installation
 ------------
 Should be as easy as running ``pip install hspfbintoolbox`` at any command
-line.  Not sure on Windows whether this will bring in pandas but as mentioned
-above, if you start with Python(x,y) then you won't have a problem.
+line.
 
 Usage - Command Line
 --------------------
