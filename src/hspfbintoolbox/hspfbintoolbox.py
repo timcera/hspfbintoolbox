@@ -404,7 +404,7 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
 
 
 @program.command("extract", formatter_class=RSTHelpFormatter)
-@tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
+@tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
 def _extract_cli(
     hbnfilename, interval, start_date=None, end_date=None, sort_columns=False, *labels
 ):
@@ -550,7 +550,7 @@ def extract(
 
 
 @program.command("catalog", formatter_class=RSTHelpFormatter)
-@tsutils.doc(tsutils.merge_dicts(tsutils.docstrings, _LOCAL_DOCSTRINGS))
+@tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
 def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     """
     Prints out a catalog of data sets in the binary file.
