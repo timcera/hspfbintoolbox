@@ -7,11 +7,7 @@ import datetime
 import os
 import struct
 import sys
-
-try:
-    from typing import Literal
-except ImportError:
-    from typing import Literal
+from typing import Literal
 
 import pandas as pd
 from cltoolbox import Program
