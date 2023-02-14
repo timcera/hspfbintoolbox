@@ -1,3 +1,9 @@
+## v9.0.0 (2023-02-13)
+
+### Fix
+
+- removed duplicate import of typing.Literal
+
 ## v8.0.3 (2023-02-13)
 
 ### Refactor
