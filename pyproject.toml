@@ -1,27 +1,26 @@
 [build-system]
+build-backend = "setuptools.build_meta"
 requires = [
     "setuptools>=45",
     "setuptools_scm[toml]>=6.2",
     "wheel",
-    "oldest-supported-numpy",
+    "oldest-supported-numpy"
 ]
-build-backend = "setuptools.build_meta"
 
 [project]
 name = "hspfbintoolbox"
 dynamic = ["readme", "version"]
 description = "Reads Hydrological Simulation Program - FORTRAN binary output files."
 dependencies = [
-    "toolbox_utils >= 2.0.0, < 3.0.0",
+    "toolbox_utils >= 3.0.0, < 4.0.0",
     "cltoolbox > 1.1.0",
     "typing_extensions",
     "pydantic",
-    "pandas",
-    ]
-license = {text = "BSD-3-Clause"}
+    "pandas"
+]
 authors = [
     {name = "Tim Cera", email = "tim@cerazone.net"}
-    ]
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
@@ -31,41 +30,52 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Scientific/Engineering",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    ]
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
 keywords = [
     "hspf",
     "binary",
     "hydrologic",
     "simulation",
-    "model",
-    ]
+    "model"
+]
+license = {text = "BSD-3-Clause"}
+requires-python = ">=3.8"
 
 [project.optional-dependencies]
 dev = [
+    "bandit",
     "black",
+    "blacken-docs",
+    "black-nbconvert",
     "cleanpy",
-    "twine",
+    "commitizen",
+    "coverage[toml]",
+    "isort",
+    "mypy",
+    "pre-commit",
+    "pyflakes",
+    "pylama",
+    "pyle",
+    "pylint",
+    "pyre",
+    "pyroma",
     "pytest",
-    "coverage",
-    "flake8",
     "pytest-cov",
     "pytest-mpl",
-    "pre-commit",
-    "black-nbconvert",
-    "blacken-docs",
-    "velin",
-    "isort",
-    "pyroma",
     "pyupgrade",
-    "commitizen",
-    "functiontrace",
-    ]
+    "twine",
+    "unimport",
+    "velin",
+    "vulture"
+]
 
 [project.scripts]
 hspfbintoolbox = "hspfbintoolbox.hspfbintoolbox:main"
@@ -75,20 +85,20 @@ documentation = "https://timcera.bitbucket.io/hspfbintoolbox/docs/index.html#hsp
 github = "https://github.com/timcera/hspfbintoolbox"
 bitbucket = "https://bitbucket.org/timcera/hspfbintoolbox/src/main/"
 
-[tool]
-
 [tool.check-manifest]
-ignore = ["docs/_function_autosummary/*",
-          ".coverage",
-          ".deepsource.toml",
-          ".ipynb_checkpoints/*"]
+ignore = [
+    "docs/_function_autosummary/*",
+    ".coverage",
+    ".deepsource.toml",
+    ".ipynb_checkpoints/*"
+]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "8.0.2"
 tag_format = "v$version"
-version_files = ["VERSION"]
 update_changelog_on_bump = true
+version = "8.0.2"
+version_files = ["VERSION"]
 
 [tool.isort]
 profile = "black"
@@ -102,7 +112,7 @@ readme = {file = "README.rst"}
 version = {file = "VERSION"}
 
 [tool.setuptools.packages.find]
-where = ["src"]
 exclude = ["examples*", "tools*", "docs*", "hspfbintoolbox.tests*"]
+where = ["src"]
 
 [tool.setuptools_scm]
