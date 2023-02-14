@@ -11,14 +11,10 @@ import subprocess
 import sys
 from unittest import TestCase
 
-from pandas.testing import assert_frame_equal
-
 try:
     from cStringIO import StringIO
 except:
     from io import StringIO
-
-import pandas as pd
 
 from hspfbintoolbox import hspfbintoolbox
 

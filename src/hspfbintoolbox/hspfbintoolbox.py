@@ -11,7 +11,7 @@ import sys
 try:
     from typing import Literal
 except ImportError:
-    from typing_extensions import Literal
+    from typing import Literal
 
 import pandas as pd
 from cltoolbox import Program
@@ -234,7 +234,6 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
 
     # Now read through the binary file and collect the data matching the labels
     with open(binfilename, "rb") as binfp:
-
         labeltest = set()
         vnames = {}
         ndates = set()
@@ -414,13 +413,13 @@ def _extract_cli(
     ----------
     ${hbnfilename}
 
-    interval: str
+    interval : str
         One of 'yearly', 'monthly', 'daily', or 'bivl'.  The 'bivl' option is
         a sub-daily interval defined in the UCI file.  Typically 'bivl' is used
         for hourly output, but can be set to any value that evenly divides into
         a day.
 
-    labels: str
+    *labels : str
         The remaining arguments uniquely identify a time-series in the
         binary file.  The format is 'OPERATIONTYPE,ID,VARIABLEGROUP,VARIABLE'.
 
@@ -486,7 +485,9 @@ def _extract_cli(
         all Groups in the Catalog are available in the unnamed (blank) Group.
 
     ${start_date}
+
     ${end_date}
+
     sort_columns:
         [optional, default is False]
 
