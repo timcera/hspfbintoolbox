@@ -33,3 +33,4 @@ __pycache__/*
 .ropeproject
 docs/_function_autosummary
 .mypy_cache/*/*
+debug_*
