@@ -105,7 +105,7 @@ class TestDescribe(TestCase):
         )
         otherout = tsutils.asbestfreq(
             pd.read_csv(self.extract_api, header=0, index_col=0, parse_dates=True)
-        )
+        ).astype("float64")
         otherout.index = otherout.index.to_period()
         assert_frame_equal(out, otherout)
 
@@ -113,6 +113,6 @@ class TestDescribe(TestCase):
         out = hspfbintoolbox.extract("tests/data_yearly.hbn", "yearly", ",905,,AGWS")
         otherout = tsutils.asbestfreq(
             pd.read_csv(self.extract_api, header=0, index_col=0, parse_dates=True)
-        )
+        ).astype("float64")
         otherout.index = otherout.index.to_period()
         assert_frame_equal(out, otherout)
