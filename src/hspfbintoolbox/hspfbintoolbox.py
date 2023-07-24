@@ -535,8 +535,7 @@ def extract(
     columns = [f"{i[0]}_{i[1]}_{i[3]}".replace(" ", "-") for i in skeys]
     result.columns = columns
     result = tsutils.asbestfreq(result)
-    if start_date is not None or end_date is not None:
-        result = tsutils.common_kwds(result, start_date=start_date, end_date=end_date)
+    result = tsutils.common_kwds(result, start_date=start_date, end_date=end_date)
     if interval == "bivl":
         result.index = result.index.to_period(result.index[1] - result.index[0])
     else:

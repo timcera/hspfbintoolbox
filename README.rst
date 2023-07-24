@@ -44,8 +44,18 @@ Requirements
 
 Installation
 ------------
-Should be as easy as running ``pip install hspfbintoolbox`` at any command
-line.
+pip
+~~~
+.. code-block:: bash
+
+    pip install hspfbintoolbox
+
+conda
+~~~~~
+.. code-block:: bash
+
+    conda install -c conda-forge hspfbintoolbox
+
 
 Usage - Command Line
 --------------------
