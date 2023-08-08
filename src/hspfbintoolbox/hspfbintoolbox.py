@@ -12,7 +12,12 @@ from typing import Literal
 import pandas as pd
 from cltoolbox import Program
 from cltoolbox.rst_text_formatter import RSTHelpFormatter
-from pydantic import validate_arguments
+
+try:
+    from pydantic import validate_call
+except ImportError:
+    from pydantic import validate_arguments as validate_call
+
 from toolbox_utils import tsutils
 
 program = Program("hspfbintoolbox", 0.0)
@@ -501,7 +506,7 @@ def _extract_cli(
     )
 
 
-@validate_arguments
+@validate_call
 def extract(
     hbnfilename: str,
     interval: Literal["yearly", "monthly", "daily", "bivl"],
@@ -568,7 +573,7 @@ def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     )
 
 
-@validate_arguments
+@validate_call
 def catalog(hbnfilename: str):
     """
     Prints out a catalog of data sets in the binary file.
