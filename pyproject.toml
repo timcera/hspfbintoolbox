@@ -14,7 +14,6 @@ description = "Reads Hydrological Simulation Program - FORTRAN binary output fil
 dependencies = [
     "toolbox_utils >= 5.0.0, < 6.0.0",
     "cltoolbox > 1.1.0",
-    "typing_extensions",
     "pydantic",
     "pandas"
 ]

@@ -63,38 +63,6 @@ def tuple_search(findme, haystack):
     ]
 
 
-def _range_to_numlist(rangestr):
-    numlist = []
-    subranges = rangestr.split("+")
-    for sub in subranges:
-        try:
-            if ":" not in sub:
-                num = int(sub)
-                numlist.append(num)
-            else:
-                ends = sub.split(":")
-                if len(ends) != 2:
-                    raise ValueError()
-                rstart = int(ends[0])
-                rend = int(ends[1]) + 1
-                if rstart > rend:
-                    raise ValueError()
-                numlist.extend(iter(range(rstart, rend)))
-        except ValueError as exc:
-            raise ValueError(
-                tsutils.error_wrapper(
-                    f"""
-                    Invalid range specification in '{sub}' of the '{rangestr}'.
-                    The correct syntax is one or more integers or
-                    colon-delimited range groups such as "99", "1:2", or
-                    "101:120", with multiple groups connected by "+" signs.
-                    Example: "1:4+16:22+30"
-                    """
-                )
-            ) from exc
-    return numlist
-
-
 def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
     """Underlying function to read from the binary file.  Used by
     'extract', 'catalog'.
@@ -193,7 +161,7 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
                 words[1] = int(words[1])
                 luelist = [words[1]]
             except ValueError:
-                luelist = _range_to_numlist(words[1])
+                luelist = tsutils.range_to_numlist(words[1])
             for luenum in luelist:
                 if luenum < 1 or luenum > 999:
                     raise ValueError(
