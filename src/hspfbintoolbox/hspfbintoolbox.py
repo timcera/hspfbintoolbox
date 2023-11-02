@@ -388,7 +388,7 @@ def _extract_cli(
         for hourly output, but can be set to any value that evenly divides into
         a day.
 
-    *labels : str
+    labels : str
         The remaining arguments uniquely identify a time-series in the
         binary file.  The format is 'OPERATIONTYPE,ID,VARIABLEGROUP,VARIABLE'.
 
