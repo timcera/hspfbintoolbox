@@ -29,7 +29,7 @@ def capture(func, *args, **kwds):
     out = sys.stdout.getvalue()  # release output
     try:
         out = bytes(out, "utf-8")
-    except:
+    except Exception:
         pass
     return out
 

@@ -359,10 +359,7 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
                 )
     else:
         for key in collect_dict:
-            if key[4] == 2:  # timestep is bivl
-                delta = ndates[1] - ndates[0]
-            else:
-                delta = code2freqmap[key[4]]
+            delta = ndates[1] - ndates[0] if key[4] == 2 else code2freqmap[key[4]]
             collect_dict[key] = (
                 pd.Period(ndates[0], freq=delta),
                 pd.Period(ndates[-1], freq=delta),
