@@ -5,7 +5,6 @@ catalog
 Tests for `hspfbintoolbox` module.
 """
 
-
 import csv
 import shlex
 import subprocess
