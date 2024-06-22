@@ -3,8 +3,7 @@ build-backend = "setuptools.build_meta"
 requires = [
     "setuptools>=45",
     "setuptools_scm[toml]>=6.2",
-    "wheel",
-    "oldest-supported-numpy"
+    "wheel"
 ]
 
 [project]
@@ -14,6 +13,7 @@ description = "Reads Hydrological Simulation Program - FORTRAN binary output fil
 dependencies = [
     "cltoolbox > 1.1.0",
     "dateparser",
+    "numpy >= 1.25",
     "pandas",
     "pandas[excel]",
     "pint!=0.21.*",
