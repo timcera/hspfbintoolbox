@@ -1,10 +1,19 @@
 [build-system]
 build-backend = "setuptools.build_meta"
 requires = [
+    "dateparser",
+    "numpy",
+    "oldest-supported-numpy",
+    "pandas[excel]",
+    "pint!=0.21.*",
+    "pint<0.22; python_version < '3.9'",
+    "pint-pandas",
+    "pydantic",
+    "scipy",
     "setuptools>=45",
     "setuptools_scm[toml]>=6.2",
-    "wheel",
-    "oldest-supported-numpy"
+    "tabulate",
+    "wheel"
 ]
 
 [project]
