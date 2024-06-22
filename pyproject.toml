@@ -11,13 +11,13 @@ name = "hspfbintoolbox"
 dynamic = ["readme", "version"]
 description = "Reads Hydrological Simulation Program - FORTRAN binary output files."
 dependencies = [
-    "cltoolbox > 1.1.0",
+    "cltoolbox >1.1.0",
     "dateparser",
-    "numpy >= 1.20",
+    "numpy >=1.20",
     "pandas",
     "pandas[excel]",
-    "pint!=0.21.*",
-    "pint<0.22; python_version < '3.9'",
+    "pint !=0.21.*",
+    "pint <0.22;python_version<='3.9'",
     "pint-pandas",
     "pydantic",
     "scipy",
