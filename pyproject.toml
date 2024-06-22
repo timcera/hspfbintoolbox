@@ -1,19 +1,10 @@
 [build-system]
 build-backend = "setuptools.build_meta"
 requires = [
-    "dateparser",
-    "numpy",
-    "oldest-supported-numpy",
-    "pandas[excel]",
-    "pint!=0.21.*",
-    "pint<0.22; python_version < '3.9'",
-    "pint-pandas",
-    "pydantic",
-    "scipy",
     "setuptools>=45",
     "setuptools_scm[toml]>=6.2",
-    "tabulate",
-    "wheel"
+    "wheel",
+    "oldest-supported-numpy"
 ]
 
 [project]
@@ -22,8 +13,15 @@ dynamic = ["readme", "version"]
 description = "Reads Hydrological Simulation Program - FORTRAN binary output files."
 dependencies = [
     "cltoolbox > 1.1.0",
+    "dateparser",
+    "pandas",
+    "pandas[excel]",
+    "pint!=0.21.*",
+    "pint<0.22; python_version < '3.9'",
+    "pint-pandas",
     "pydantic",
-    "pandas"
+    "scipy",
+    "tabulate"
 ]
 authors = [
     {name = "Tim Cera", email = "tim@cerazone.net"}
@@ -56,34 +54,6 @@ keywords = [
 ]
 license = {text = "BSD-3-Clause"}
 requires-python = ">=3.8"
-
-[project.optional-dependencies]
-dev = [
-    "bandit",
-    "black",
-    "blacken-docs",
-    "black-nbconvert",
-    "cleanpy",
-    "commitizen",
-    "coverage[toml]",
-    "isort",
-    "mypy",
-    "pre-commit",
-    "pyflakes",
-    "pylama",
-    "pyle",
-    "pylint",
-    "pyre",
-    "pyroma",
-    "pytest",
-    "pytest-cov",
-    "pytest-mpl",
-    "pyupgrade",
-    "twine",
-    "unimport",
-    "velin",
-    "vulture"
-]
 
 [project.scripts]
 hspfbintoolbox = "hspfbintoolbox.hspfbintoolbox:main"
@@ -123,7 +93,6 @@ readme = {file = "README.rst"}
 version = {file = "VERSION"}
 
 [tool.setuptools.packages.find]
-exclude = ["tests*", "examples*", "tools*", "docs*", "hspfbintoolbox.tests*"]
 where = ["src"]
 
 [tool.setuptools_scm]
