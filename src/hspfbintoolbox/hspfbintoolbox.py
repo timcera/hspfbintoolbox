@@ -17,7 +17,7 @@ try:
 except ImportError:
     from pydantic import validate_arguments as validate_call
 
-from toolbox_utils import tsutils
+from .toolbox_utils.src.toolbox_utils import tsutils
 
 program = Program("hspfbintoolbox", 0.0)
 

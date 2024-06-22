@@ -12,7 +12,6 @@ name = "hspfbintoolbox"
 dynamic = ["readme", "version"]
 description = "Reads Hydrological Simulation Program - FORTRAN binary output files."
 dependencies = [
-    "toolbox_utils >= 5.0.0, < 6.0.0",
     "cltoolbox > 1.1.0",
     "pydantic",
     "pandas"
@@ -102,6 +101,9 @@ version_files = ["VERSION"]
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.setuptools]
 license-files = ["LICENSE.txt"]
