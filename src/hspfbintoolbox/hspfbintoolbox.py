@@ -25,8 +25,11 @@ code2intervalmap = {5: "yearly", 4: "monthly", 3: "daily", 2: "bivl"}
 
 interval2codemap = {"yearly": 5, "monthly": 4, "daily": 3, "bivl": 2}
 
-code2freqmap = {5: "A", 4: "M", 3: "D", 2: None}
-
+pd_version = [int(i) for i in pd.__version__.split(".")[:2]]
+if pd_version < [2, 2]:
+    code2freqmap = {5: "A", 4: "M", 3: "D", 2: None}
+else:
+    code2freqmap = {5: "Y", 4: "M", 3: "D", 2: None}
 
 _LOCAL_DOCSTRINGS = {
     "hbnfilename": r"""hbnfilename: str
@@ -177,7 +180,7 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
         # third word must be a valid group name or None
         if words[2] is not None:
             words[2] = words[2].upper()
-            if words[2] not in testem[words[0]]:
+            if (words[0] is not None) and (words[2] not in testem[words[0]]):
                 raise ValueError(
                     tsutils.error_wrapper(
                         f"""
@@ -367,10 +370,14 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
     return ndates, collect_dict
 
 
-@program.command("extract", formatter_class=RSTHelpFormatter)
-@tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
-def _extract_cli(
-    hbnfilename, interval, start_date=None, end_date=None, sort_columns=False, *labels
+@validate_call
+def extract(
+    hbnfilename: str,
+    interval: Literal["yearly", "monthly", "daily", "bivl"],
+    *labels,
+    start_date=None,
+    end_date=None,
+    sort_columns: bool = False,
 ):
     r"""Prints out data to the screen from a HSPF binary output file.
 
@@ -458,28 +465,6 @@ def _extract_cli(
 
         If set to False will maintain the columns order of the labels.  If set
         to True will sort all columns by their columns names."""
-    tsutils.printiso(
-        extract(
-            hbnfilename,
-            interval,
-            *labels,
-            start_date=start_date,
-            end_date=end_date,
-            sort_columns=sort_columns,
-        )
-    )
-
-
-@validate_call
-def extract(
-    hbnfilename: str,
-    interval: Literal["yearly", "monthly", "daily", "bivl"],
-    *labels,
-    start_date=None,
-    end_date=None,
-    sort_columns: bool = False,
-):
-    r"""Returns a DataFrame from a HSPF binary output file."""
     interval = interval.lower()
     if interval not in ["bivl", "daily", "monthly", "yearly"]:
         raise ValueError(
@@ -495,13 +480,12 @@ def extract(
     skeys = list(data.keys())
     if sort_columns:
         skeys.sort(key=lambda tup: tup[1:])
-
+    columns = [f"{i[0]}_{i[1]}_{i[3]}".replace(" ", "-") for i in skeys]
     result = pd.DataFrame(
         pd.concat(
             [pd.Series(data[i], index=index) for i in skeys], sort=False, axis=1
         ).reindex(pd.Index(index))
     )
-    columns = [f"{i[0]}_{i[1]}_{i[3]}".replace(" ", "-") for i in skeys]
     result.columns = columns
     result = tsutils.asbestfreq(result)
     result = tsutils.common_kwds(result, start_date=start_date, end_date=end_date)
@@ -514,9 +498,8 @@ def extract(
     return result
 
 
-@program.command("catalog", formatter_class=RSTHelpFormatter)
-@tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
-def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
+@validate_call
+def catalog(hbnfilename: str):
     """
     Prints out a catalog of data sets in the binary file.
 
@@ -529,18 +512,6 @@ def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
     ${tablefmt}
     ${header}
 
-    """
-    if header == "default":
-        header = ["LUE", "LC", "GROUP", "VAR", "TC", "START", "END", "TC"]
-    tsutils.printiso(
-        catalog(hbnfilename), tablefmt=tablefmt, headers=header, showindex=False
-    )
-
-
-@validate_call
-def catalog(hbnfilename: str):
-    """
-    Prints out a catalog of data sets in the binary file.
     """
     # PERLND  905  PWATER  SURS  5  1951  2001  yearly
     # PERLND  905  PWATER  TAET  5  1951  2001  yearly
@@ -558,11 +529,51 @@ def about():
 def main():
     if not os.path.exists("debug_hspfbintoolbox"):
         sys.tracebacklimit = 0
-    if os.path.exists("profile_hspfbintoolbox"):
-        import functiontrace
 
-        functiontrace.trace()
-    program()
+    import cltoolbox
+    from plottoolbox.toolbox_utils.src.toolbox_utils import tsutils
+
+    @cltoolbox.command("about", formatter_class=RSTHelpFormatter)
+    @tsutils.copy_doc(about)
+    def about_cli():
+        """docstring replaced by tsutils.copy_doc"""
+        import pprint
+
+        pprint.pprint(tsutils.about(__name__))
+
+    @cltoolbox.command("extract", formatter_class=RSTHelpFormatter)
+    @tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
+    @tsutils.copy_doc(extract)
+    def _extract_cli(
+        hbnfilename,
+        interval,
+        start_date=None,
+        end_date=None,
+        sort_columns=False,
+        *labels,
+    ):
+        tsutils.printiso(
+            extract(
+                hbnfilename,
+                interval,
+                *labels,
+                start_date=start_date,
+                end_date=end_date,
+                sort_columns=sort_columns,
+            )
+        )
+
+    @cltoolbox.command("catalog", formatter_class=RSTHelpFormatter)
+    @tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
+    @tsutils.copy_doc(catalog)
+    def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
+        if header == "default":
+            header = ["LUE", "LC", "GROUP", "VAR", "TC", "START", "END", "TC"]
+        tsutils.printiso(
+            catalog(hbnfilename), tablefmt=tablefmt, headers=header, showindex=False
+        )
+
+    cltoolbox.main()
 
 
 if __name__ == "__main__":
