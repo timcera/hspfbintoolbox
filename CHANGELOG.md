@@ -1,3 +1,13 @@
+## v9.0.6 (2024-09-15)
+
+### Fix
+
+- mistakenly included import of plottoolbox
+
+### Refactor
+
+- moved cli into it's own main function
+
 ## v9.0.5 (2024-06-21)
 
 ## v9.0.4 (2024-03-31)
