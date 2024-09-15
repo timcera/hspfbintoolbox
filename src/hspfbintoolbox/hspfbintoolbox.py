@@ -531,7 +531,8 @@ def main():
         sys.tracebacklimit = 0
 
     import cltoolbox
-    from plottoolbox.toolbox_utils.src.toolbox_utils import tsutils
+
+    from .toolbox_utils.src.toolbox_utils import tsutils
 
     @cltoolbox.command("about", formatter_class=RSTHelpFormatter)
     @tsutils.copy_doc(about)
