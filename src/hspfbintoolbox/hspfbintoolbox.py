@@ -291,10 +291,12 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
                 recpos += 4 * numvals
 
                 delta = datetime.timedelta(hours=0)
-                if hour == 24:
-                    hour = 0
+                if interval == "bivl":
+                    delta = datetime.timedelta(hours=hour) + datetime.timedelta(
+                        minutes=minute
+                    )
 
-                ndate = datetime.datetime(year, month, day, hour, minute) + delta
+                ndate = datetime.datetime(year, month, day) + delta
 
                 #  Go through labels to see if these values need to be
                 #  collected
