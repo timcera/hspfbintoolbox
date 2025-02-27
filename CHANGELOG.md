@@ -1,3 +1,9 @@
+## v9.0.7 (2025-02-27)
+
+### Fix
+
+- fixed time stamps associated with "bivl" interval
+
 ## v9.0.6 (2024-09-15)
 
 ### Fix
