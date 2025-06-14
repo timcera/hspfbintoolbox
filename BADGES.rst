@@ -18,11 +18,6 @@
     :target: https://pypi.python.org/pypi/hspfbintoolbox/
     :height: 20
 
-.. image:: http://img.shields.io/pypi/dd/hspfbintoolbox.svg
-    :alt: hspfbintoolbox downloads
-    :target: https://pypi.python.org/pypi/hspfbintoolbox/
-    :height: 20
-
 .. image:: https://img.shields.io/pypi/pyversions/hspfbintoolbox
     :alt: PyPI - Python Version
     :target: https://pypi.org/project/hspfbintoolbox/
