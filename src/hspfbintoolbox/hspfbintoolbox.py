@@ -291,7 +291,7 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
                 recpos += 4 * numvals
 
                 delta = datetime.timedelta(hours=0)
-                if interval == "bivl":
+                if level == interval2codemap["bivl"]:
                     delta = datetime.timedelta(hours=hour) + datetime.timedelta(
                         minutes=minute
                     )
