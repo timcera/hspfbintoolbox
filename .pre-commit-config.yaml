@@ -23,8 +23,6 @@ repos:
           - id: check-xml
           - id: end-of-file-fixer
             exclude: notebooks/tstoolbox_plot_bash.sh
-          - id: fix-encoding-pragma
-            args: [--remove]
           - id: mixed-line-ending
           - id: trailing-whitespace
             exclude: notebooks/tstoolbox_plot_bash.sh
@@ -57,7 +55,7 @@ repos:
       rev: v0.24.3
       hooks:
           - id: toml-sort-fix
-            args: [--in-place, --spaces-indent-inline-array, '4']
+            args: [--all, --in-place, --spaces-indent-inline-array, '4']
 
     - repo: https://github.com/adrienverge/yamllint.git
       rev: v1.37.1

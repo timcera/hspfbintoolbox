@@ -2237,4 +2237,5 @@ PERLND, 905,PWATER ,UZS  ,   5,1950   ,2000 ,yearly
         out = subprocess.Popen(
             args, stdout=subprocess.PIPE, stdin=subprocess.PIPE
         ).communicate()[0]
+        out = out.replace(b"\r\n", b"\n").replace(b"\r", b"")
         self.assertEqual(out, self.catalog)

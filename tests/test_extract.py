@@ -153,6 +153,7 @@ class TestDescribe(TestCase):
         out = subprocess.Popen(
             args, stdout=subprocess.PIPE, stdin=subprocess.PIPE
         ).communicate()[0]
+        out = out.replace(b"\r\n", b"\n").replace(b"\r", b"")
         self.assertEqual(out, self.extract)
 
     def test_extract_one_label_labellist_api(self):
@@ -179,6 +180,7 @@ class TestDescribe(TestCase):
         out = subprocess.Popen(
             args, stdout=subprocess.PIPE, stdin=subprocess.PIPE
         ).communicate()[0]
+        out = out.replace(b"\r\n", b"\n").replace(b"\r", b"")
         self.assertEqual(out, self.extract_range)
 
     def test_extract_range_label_labellist_api(self):
