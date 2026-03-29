@@ -9,17 +9,13 @@ import sys
 from typing import Literal
 
 import pandas as pd
-from cltoolbox import Program
-from cltoolbox.rst_text_formatter import RSTHelpFormatter
 
 try:
     from pydantic import validate_call
 except ImportError:
     from pydantic import validate_arguments as validate_call
 
-from .toolbox_utils.src.toolbox_utils import tsutils
-
-program = Program("hspfbintoolbox", 0.0)
+from hspfbintoolbox.toolbox_utils.src.toolbox_utils import tsutils
 
 code2intervalmap = {5: "yearly", 4: "monthly", 3: "daily", 2: "bivl"}
 
@@ -36,6 +32,20 @@ _LOCAL_DOCSTRINGS = {
         The HSPF binary output file.  This file must have been created from
         a completed model run."""
 }
+
+tablefmt_docstring = (
+    """[optional, default is 'cvs_nos']
+
+The table format.  Can be one of 'csv', 'tsv', 'csv_nos', 'tsv_nos',
+'plain', 'simple', 'github', 'grid', 'fancy_grid', 'pipe', 'orgtbl',
+'jira', 'presto', 'psql', 'rst', 'mediawiki', 'moinmoin', 'youtrack',
+'html', 'latex', 'latex_raw', 'latex_booktabs' and 'textile'.""",
+)
+float_format_docstring = (
+    """[optional, default is 'g']
+
+The format for floating point numbers in the output table.""",
+)
 
 
 def tuple_match(a, b):
@@ -373,6 +383,7 @@ def _get_data(binfilename, interval="daily", labels=None, catalog_only=True):
 
 
 @validate_call
+@tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
 def extract(
     hbnfilename: str,
     interval: Literal["yearly", "monthly", "daily", "bivl"],
@@ -381,18 +392,17 @@ def extract(
     end_date=None,
     sort_columns: bool = False,
 ):
-    r"""Prints out data to the screen from a HSPF binary output file.
+    """
+    Extracts data from a HSPF binary output file.
 
     Parameters
     ----------
     ${hbnfilename}
-
     interval : str
         One of 'yearly', 'monthly', 'daily', or 'bivl'.  The 'bivl' option is
         a sub-daily interval defined in the UCI file.  Typically 'bivl' is used
         for hourly output, but can be set to any value that evenly divides into
         a day.
-
     labels : str
         The remaining arguments uniquely identify a time-series in the
         binary file.  The format is 'OPERATIONTYPE,ID,VARIABLEGROUP,VARIABLE'.
@@ -425,7 +435,7 @@ def extract(
               groups of integers marked as "start:end", with multiple allowed
               sub-ranges separated by the "+" sign.
 
-        Examples:
+        Examples::
 
             +-----------------------+-------------------------------+
             | Label ID              | Expands to:                   |
@@ -457,11 +467,8 @@ def extract(
         The Time Series Catalog in the HSPF Manual lists all of the variables
         in each of these VARIABLEGROUPs.  For BMPRAC, all of the variables in
         all Groups in the Catalog are available in the unnamed (blank) Group.
-
     ${start_date}
-
     ${end_date}
-
     sort_columns:
         [optional, default is False]
 
@@ -501,6 +508,7 @@ def extract(
 
 
 @validate_call
+@tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
 def catalog(hbnfilename: str):
     """
     Prints out a catalog of data sets in the binary file.
@@ -513,7 +521,6 @@ def catalog(hbnfilename: str):
     ${hbnfilename}
     ${tablefmt}
     ${header}
-
     """
     # PERLND  905  PWATER  SURS  5  1951  2001  yearly
     # PERLND  905  PWATER  TAET  5  1951  2001  yearly
@@ -522,7 +529,6 @@ def catalog(hbnfilename: str):
     return [cat + catlog[cat] + (code2intervalmap[cat[-1]],) for cat in catkeys]
 
 
-@program.command()
 def about():
     """Display version number and system information."""
     tsutils.about(__name__)
@@ -532,20 +538,20 @@ def main():
     if not os.path.exists("debug_hspfbintoolbox"):
         sys.tracebacklimit = 0
 
+    from argparse import RawTextHelpFormatter
+
     import cltoolbox
 
-    from .toolbox_utils.src.toolbox_utils import tsutils
-
-    @cltoolbox.command("about", formatter_class=RSTHelpFormatter)
+    @cltoolbox.command("about", formatter_class=RawTextHelpFormatter)
     @tsutils.copy_doc(about)
     def about_cli():
-        """docstring replaced by tsutils.copy_doc"""
         import pprint
 
         pprint.pprint(tsutils.about(__name__))
 
-    @cltoolbox.command("extract", formatter_class=RSTHelpFormatter)
-    @tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
+    @cltoolbox.command("extract", formatter_class=RawTextHelpFormatter)
+    @cltoolbox.arg("tablefmt", help=tablefmt_docstring)
+    @cltoolbox.arg("float_format", help=float_format_docstring)
     @tsutils.copy_doc(extract)
     def _extract_cli(
         hbnfilename,
@@ -553,6 +559,8 @@ def main():
         start_date=None,
         end_date=None,
         sort_columns=False,
+        tablefmt="csv_nos",
+        float_format="g",
         *labels,
     ):
         tsutils.printiso(
@@ -563,17 +571,29 @@ def main():
                 start_date=start_date,
                 end_date=end_date,
                 sort_columns=sort_columns,
-            )
+            ),
+            tablefmt=tablefmt,
+            float_format=float_format,
         )
 
-    @cltoolbox.command("catalog", formatter_class=RSTHelpFormatter)
-    @tsutils.doc({**tsutils.docstrings, **_LOCAL_DOCSTRINGS})
+    @cltoolbox.command("catalog", formatter_class=RawTextHelpFormatter)
+    @cltoolbox.arg("tablefmt", help=tablefmt_docstring)
+    @cltoolbox.arg("float_format", help=float_format_docstring)
     @tsutils.copy_doc(catalog)
-    def _catalog_cli(hbnfilename, tablefmt="simple", header="default"):
+    def _catalog_cli(
+        hbnfilename,
+        header="default",
+        tablefmt="csv_nos",
+        float_format="g",
+    ):
         if header == "default":
             header = ["LUE", "LC", "GROUP", "VAR", "TC", "START", "END", "TC"]
         tsutils.printiso(
-            catalog(hbnfilename), tablefmt=tablefmt, headers=header, showindex=False
+            catalog(hbnfilename),
+            headers=header,
+            showindex=False,
+            tablefmt=tablefmt,
+            float_format=float_format,
         )
 
     cltoolbox.main()

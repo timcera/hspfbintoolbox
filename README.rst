@@ -33,7 +33,7 @@ command line programs like ``tstoolbox``.
 Requirements
 ------------
 
-* python 3.7 or later
+* python 3.10 or later
 
 * tstoolbox - utilities to process time-series
 
