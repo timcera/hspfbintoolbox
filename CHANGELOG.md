@@ -1,3 +1,13 @@
+## v9.0.9 (2026-06-08)
+
+### Fix
+
+- fixed the separation of API and CLI functions
+
+### Refactor
+
+- removed local _get_data function to use centralized function in toolbox_utils
+
 ## v9.0.8 (2025-10-09)
 
 ### Fix
