@@ -1,3 +1,9 @@
+## v9.0.12 (2026-06-23)
+
+### Fix
+
+- fix CLI help strings, normalize ruff configuration to match other projects
+
 ## v9.0.11 (2026-06-11)
 
 ### Fix
