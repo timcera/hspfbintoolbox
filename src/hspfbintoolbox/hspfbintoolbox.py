@@ -2,17 +2,22 @@
 hspfbintoolbox to read HSPF binary files.
 """
 
+# Standard library imports
 import os
 import sys
 from typing import Literal
 
+# Third party imports
 import pandas as pd
 
 try:
+    # Third party imports
     from pydantic import validate_call
 except ImportError:
+    # Third party imports
     from pydantic import validate_arguments as validate_call
 
+# First party imports
 from hspfbintoolbox.toolbox_utils.src.toolbox_utils import tsutils
 from hspfbintoolbox.toolbox_utils.src.toolbox_utils.readers.hbn import _get_data
 
@@ -32,19 +37,23 @@ _LOCAL_DOCSTRINGS = {
         a completed model run."""
 }
 
-tablefmt_docstring = (
-    """[optional, default is 'cvs_nos']
+tablefmt_docstring = """[optional, default is 'cvs_nos']
 
 The table format.  Can be one of 'csv', 'tsv', 'csv_nos', 'tsv_nos',
 'plain', 'simple', 'github', 'grid', 'fancy_grid', 'pipe', 'orgtbl',
 'jira', 'presto', 'psql', 'rst', 'mediawiki', 'moinmoin', 'youtrack',
-'html', 'latex', 'latex_raw', 'latex_booktabs' and 'textile'.""",
-)
-float_format_docstring = (
-    """[optional, default is 'g']
+'html', 'latex', 'latex_raw', 'latex_booktabs' and 'textile'."""
 
-The format for floating point numbers in the output table.""",
-)
+float_format_docstring = """[optional, default is 'g']
+
+The format for floating point numbers in the output table."""
+
+header_docstring = """[optional, default is "default"]
+
+The header for the print out version of the catalog.
+
+The "default" header is: ["LUE", "LC", "GROUP", "VAR", "TC", "START", "END",
+"TC"]"""
 
 
 @validate_call
@@ -184,8 +193,6 @@ def catalog(hbnfilename: str):
     Parameters
     ----------
     ${hbnfilename}
-    ${tablefmt}
-    ${header}
     """
     # PERLND  905  PWATER  SURS  5  1951  2001  yearly
     # PERLND  905  PWATER  TAET  5  1951  2001  yearly
@@ -203,13 +210,16 @@ def main():
     if not os.path.exists("debug_hspfbintoolbox"):
         sys.tracebacklimit = 0
 
+    # Standard library imports
     from argparse import RawTextHelpFormatter
 
+    # Third party imports
     import cltoolbox
 
     @cltoolbox.command("about", formatter_class=RawTextHelpFormatter)
     @tsutils.copy_doc(about)
     def about_cli():
+        # Standard library imports
         import pprint
 
         pprint.pprint(tsutils.about(__name__))
@@ -244,6 +254,7 @@ def main():
     @cltoolbox.command("catalog", formatter_class=RawTextHelpFormatter)
     @cltoolbox.arg("tablefmt", help=tablefmt_docstring)
     @cltoolbox.arg("float_format", help=float_format_docstring)
+    @cltoolbox.arg("header", help=header_docstring)
     @tsutils.copy_doc(catalog)
     def _catalog_cli(
         hbnfilename,
